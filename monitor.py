@@ -212,8 +212,10 @@ class ChannelMonitor:
         me = await self.client.get_me()
         self.logger.info(f"Logged in as: {me.first_name} (@{me.username})")
         
-        # Wait for shutdown
-        await graceful_shutdown.wait_for_shutdown()
+        # Use Pyrogram's idle() to keep the client running
+        # This properly handles updates and keeps connection alive
+        from pyrogram import idle
+        await idle()
     
     async def stop(self):
         """Stop monitoring"""
@@ -259,7 +261,7 @@ async def main():
     pyrogram_logger.setLevel(logging.WARNING)
     
     # Set exception handler for asyncio to catch unhandled exceptions
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     
     def exception_handler(loop, context):
         """Handle exceptions in asyncio tasks"""
@@ -272,6 +274,10 @@ async def main():
             if "Peer id invalid" in error_msg or "ID not found" in error_msg:
                 return  # Ignore these errors
         
+        # Silently ignore socket errors
+        if exception and "socket.send()" in str(exception):
+            return
+        
         # Log other exceptions
         if exception:
             monitor_logger.error(f"Unhandled exception in task: {exception}")
@@ -282,12 +288,8 @@ async def main():
     
     monitor = ChannelMonitor()
     
-    # Setup graceful shutdown
-    graceful_shutdown.setup_signals()
-    graceful_shutdown.add_cleanup(monitor.stop)
-    
-    # Run with restart
-    await auto_restart.run_with_restart(monitor.run)
+    # Run the monitor (idle() handles signals internally)
+    await monitor.run()
 
 
 def run_monitor():

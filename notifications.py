@@ -27,11 +27,11 @@ class NotificationMessage:
     def to_telegram_format(self) -> str:
         """Format for Telegram"""
         text = f"**🎯 {self.title}**\n\n"
-        text += f"📌 **الكلمة:** `{self.keyword}`\n"
-        text += f"📢 **القناة:** @{self.channel}\n\n"
-        text += f"💬 **الرسالة:**\n{self.body}"
+        text += f"📌 **Keyword:** `{self.keyword}`\n"
+        text += f"📢 **Channel:** @{self.channel}\n\n"
+        text += f"💬 **Message:**\n{self.body}"
         if self.message_link:
-            text += f"\n\n🔗 [رابط الرسالة]({self.message_link})"
+            text += f"\n\n🔗 [Message link]({self.message_link})"
         return text
     
     def to_discord_format(self) -> dict:
@@ -42,8 +42,8 @@ class NotificationMessage:
                 "description": self.body[:2000],
                 "color": 0x00ff00,
                 "fields": [
-                    {"name": "📌 الكلمة", "value": self.keyword, "inline": True},
-                    {"name": "📢 القناة", "value": f"@{self.channel}", "inline": True}
+                    {"name": "📌 Keyword", "value": self.keyword, "inline": True},
+                    {"name": "📢 Channel", "value": f"@{self.channel}", "inline": True}
                 ],
                 "url": self.message_link
             }]
@@ -51,20 +51,21 @@ class NotificationMessage:
     
     def to_email_format(self) -> tuple:
         """Format for email"""
-        subject = f"🎯 تنبيه: تم العثور على '{self.keyword}' في @{self.channel}"
+        subject = f"🎯 Alert: '{self.keyword}' found in @{self.channel}"
+
         
         html = f"""
         <html>
         <body style="font-family: Arial, sans-serif; direction: rtl;">
             <h2 style="color: #2e7d32;">🎯 {self.title}</h2>
-            <p><strong>📌 الكلمة:</strong> {self.keyword}</p>
-            <p><strong>📢 القناة:</strong> @{self.channel}</p>
+            <p><strong>📌 Word:</strong> {self.keyword}</p>
+            <p><strong>📢 Channel:</strong> @{self.channel}</p>
             <hr>
-            <p><strong>💬 الرسالة:</strong></p>
+            <p><strong>💬 Message:</strong></p>
             <div style="background: #f5f5f5; padding: 15px; border-radius: 5px;">
                 {self.body}
             </div>
-            {f'<p><a href="{self.message_link}">🔗 رابط الرسالة</a></p>' if self.message_link else ''}
+            {f'<p><a href="{self.message_link}">🔗 Message link</a></p>' if self.message_link else ''}
         </body>
         </html>
         """
@@ -92,14 +93,37 @@ class NotificationProvider(ABC):
 class TelegramNotifier(NotificationProvider):
     """Telegram notifications via user account"""
     
-    name = "telegram"
+    @property
+    def name(self) -> str:
+        return "telegram"
     
     def __init__(self, client=None):
         self.client = client
         self.user_id = config.NOTIFY_USER_ID
+        # Get notification destination (can be username or chat ID)
+        self.chat_id = self._parse_chat_id()
+    
+    def _parse_chat_id(self):
+        """Parse NOTIFY_CHAT_ID which can be username or numeric ID"""
+        chat_id = config.NOTIFY_CHAT_ID
+        
+        if not chat_id:
+            # Default to user's own ID (Saved Messages)
+            return self.user_id
+        
+        # If it starts with @ it's a username
+        if chat_id.startswith('@'):
+            return chat_id
+        
+        # Try to parse as integer (channel/group/user ID)
+        try:
+            return int(chat_id)
+        except ValueError:
+            # If not a number and doesn't start with @, add @ prefix
+            return f"@{chat_id}"
     
     def is_configured(self) -> bool:
-        return bool(self.user_id and self.client)
+        return bool(self.chat_id and self.client)
     
     async def send(self, message: NotificationMessage) -> bool:
         if not self.is_configured():
@@ -108,10 +132,10 @@ class TelegramNotifier(NotificationProvider):
         
         try:
             await self.client.send_message(
-                self.user_id,
+                self.chat_id,
                 message.to_telegram_format()
             )
-            monitor_logger.notification_sent("Telegram", str(self.user_id))
+            monitor_logger.notification_sent("Telegram", str(self.chat_id))
             return True
         except Exception as e:
             monitor_logger.notification_failed("Telegram", str(e))

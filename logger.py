@@ -62,7 +62,7 @@ def setup_logger(name: str = 'channel_monitor', level: int = logging.INFO) -> lo
     console_handler.setFormatter(console_formatter)
     logger.addHandler(console_handler)
     
-    # File Handler
+    # File Handlerls
     try:
         config.ensure_directories()
         file_handler = logging.FileHandler(
@@ -91,23 +91,23 @@ class MonitorLogger:
     
     def keyword_found(self, keyword: str, channel: str, message_id: int):
         """Log keyword found event"""
-        self.logger.info(f"🎯 كلمة مفتاحية '{keyword}' في @{channel} (رسالة #{message_id})")
+        self.logger.info(f"🔍 Keyword '{keyword}' found in channel @{channel} (Message ID: {message_id})")
     
     def notification_sent(self, method: str, destination: str):
         """Log notification sent event"""
-        self.logger.info(f"📤 إشعار {method} أُرسل إلى {destination}")
+        self.logger.info(f"✅ {method} notification sent to {destination}")
     
     def notification_failed(self, method: str, error: str):
         """Log notification failure"""
-        self.logger.error(f"❌ فشل إرسال {method}: {error}")
+        self.logger.error(f"❌ {method} notification failed: {error}")
     
     def monitor_started(self, channels_count: int, keywords_count: int):
         """Log monitoring start"""
-        self.logger.info(f"🚀 بدأت المراقبة: {channels_count} قناة، {keywords_count} كلمة")
+        self.logger.info(f"🚀 Monitoring started: {channels_count} channels, {keywords_count} keywords")
     
     def monitor_stopped(self):
         """Log monitoring stop"""
-        self.logger.info("🛑 توقفت المراقبة")
+        self.logger.info("🛑 Monitoring stopped")
     
     def error(self, message: str, exc_info: bool = False):
         """Log error"""

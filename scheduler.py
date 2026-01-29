@@ -213,15 +213,31 @@ class GracefulShutdown:
     """Graceful shutdown management"""
     
     def __init__(self):
-        self._shutdown_event = asyncio.Event()
+        self._shutdown_event = None
         self._cleanup_callbacks: List[Callable] = []
+        self._signals_setup = False
+    
+    def _ensure_event(self):
+        """Ensure shutdown event exists in current event loop"""
+        if self._shutdown_event is None:
+            self._shutdown_event = asyncio.Event()
     
     def setup_signals(self):
         """Setup signal handlers"""
+        if self._signals_setup:
+            return
+        
+        self._signals_setup = True
+        
         if sys.platform != 'win32':
-            loop = asyncio.get_event_loop()
-            for sig in (signal.SIGTERM, signal.SIGINT):
-                loop.add_signal_handler(sig, self._signal_handler)
+            try:
+                loop = asyncio.get_running_loop()
+                for sig in (signal.SIGTERM, signal.SIGINT):
+                    loop.add_signal_handler(sig, self._signal_handler)
+            except RuntimeError:
+                # No running loop, use sync handlers
+                signal.signal(signal.SIGINT, self._sync_signal_handler)
+                signal.signal(signal.SIGTERM, self._sync_signal_handler)
         else:
             # Windows
             signal.signal(signal.SIGINT, self._sync_signal_handler)
@@ -230,12 +246,19 @@ class GracefulShutdown:
     def _signal_handler(self):
         """Signal handler (Unix)"""
         monitor_logger.info("📴 Shutdown signal received")
-        self._shutdown_event.set()
+        if self._shutdown_event:
+            self._shutdown_event.set()
     
     def _sync_signal_handler(self, signum, frame):
         """Signal handler (Windows)"""
         monitor_logger.info("📴 Shutdown signal received")
-        asyncio.get_event_loop().call_soon_threadsafe(self._shutdown_event.set)
+        if self._shutdown_event:
+            try:
+                loop = asyncio.get_running_loop()
+                loop.call_soon_threadsafe(self._shutdown_event.set)
+            except RuntimeError:
+                # No running loop
+                pass
     
     def add_cleanup(self, callback: Callable):
         """Add cleanup function"""
@@ -243,7 +266,16 @@ class GracefulShutdown:
     
     async def wait_for_shutdown(self):
         """Wait for shutdown signal"""
+        self._ensure_event()
+        # Clear event in case it was set from a previous run
+        self._shutdown_event.clear()
         await self._shutdown_event.wait()
+    
+    def reset(self):
+        """Reset shutdown state for fresh start"""
+        if self._shutdown_event:
+            self._shutdown_event.clear()
+        self._shutdown_event = None
     
     async def cleanup(self):
         """Execute cleanup operations"""

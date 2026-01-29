@@ -20,6 +20,10 @@ class Config:
     SESSION_NAME = os.getenv('SESSION_NAME', 'my_account')
     NOTIFY_USER_ID = int(os.getenv('NOTIFY_USER_ID', 0))
     
+    # Notification destination (can be username like @channel or numeric ID)
+    # If not set, defaults to NOTIFY_USER_ID (Saved Messages)
+    NOTIFY_CHAT_ID = os.getenv('NOTIFY_CHAT_ID', '')
+    
     # Bot
     BOT_TOKEN = os.getenv('BOT_TOKEN', '')
     
