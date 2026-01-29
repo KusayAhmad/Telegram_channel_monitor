@@ -96,31 +96,31 @@ class ScheduleManager:
                 replace_existing=True
             )
         
-        monitor_logger.info(f"تمت إضافة جدول: {schedule.name}")
+        monitor_logger.info(f"Schedule added: {schedule.name}")
     
     async def _start_monitoring(self):
         """Start monitoring"""
         if self._monitor_callback and not self._is_monitoring:
             self._is_monitoring = True
-            monitor_logger.info("🚀 بدء المراقبة المجدولة")
+            monitor_logger.info("🚀 Starting scheduled monitoring")
             await self._monitor_callback(start=True)
     
     async def _stop_monitoring(self):
         """Stop monitoring"""
         if self._monitor_callback and self._is_monitoring:
             self._is_monitoring = False
-            monitor_logger.info("🛑 إيقاف المراقبة المجدولة")
+            monitor_logger.info("🛑 Stopping scheduled monitoring")
             await self._monitor_callback(start=False)
     
     def start(self):
         """Start the scheduler"""
         self.scheduler.start()
-        monitor_logger.info("⏰ تم تشغيل نظام الجدولة")
+        monitor_logger.info("⏰ Scheduling system started")
     
     def stop(self):
         """Stop the scheduler"""
         self.scheduler.shutdown()
-        monitor_logger.info("⏰ تم إيقاف نظام الجدولة")
+        monitor_logger.info("⏰ Scheduling system stopped")
     
     def is_within_schedule(self) -> bool:
         """Check if we are within monitoring time"""
@@ -173,12 +173,12 @@ class AutoRestartManager:
         
         while self._running and self._current_retries < self.max_retries:
             try:
-                monitor_logger.info("🚀 بدء التشغيل...")
+                monitor_logger.info("🚀 Starting execution...")
                 self._current_retries = 0
                 await coroutine_func()
                 
             except asyncio.CancelledError:
-                monitor_logger.info("تم إلغاء التشغيل")
+                monitor_logger.info("Execution cancelled")
                 break
                 
             except Exception as e:
@@ -186,14 +186,14 @@ class AutoRestartManager:
                 delay = self.retry_delay * (self.backoff_multiplier ** (self._current_retries - 1))
                 
                 monitor_logger.error(
-                    f"❌ خطأ في التشغيل (محاولة {self._current_retries}/{self.max_retries}): {e}"
+                    f"❌ Execution error (attempt {self._current_retries}/{self.max_retries}): {e}"
                 )
                 
                 if self._current_retries < self.max_retries:
-                    monitor_logger.info(f"⏳ إعادة المحاولة بعد {delay:.0f} ثانية...")
+                    monitor_logger.info(f"⏳ Retrying after {delay:.0f} seconds...")
                     await asyncio.sleep(delay)
                 else:
-                    monitor_logger.critical("🛑 تجاوز الحد الأقصى للمحاولات")
+                    monitor_logger.critical("🛑 Maximum retry attempts exceeded")
                     break
         
         self._running = False
@@ -229,12 +229,12 @@ class GracefulShutdown:
     
     def _signal_handler(self):
         """Signal handler (Unix)"""
-        monitor_logger.info("📴 تم استقبال إشارة الإيقاف")
+        monitor_logger.info("📴 Shutdown signal received")
         self._shutdown_event.set()
     
     def _sync_signal_handler(self, signum, frame):
         """Signal handler (Windows)"""
-        monitor_logger.info("📴 تم استقبال إشارة الإيقاف")
+        monitor_logger.info("📴 Shutdown signal received")
         asyncio.get_event_loop().call_soon_threadsafe(self._shutdown_event.set)
     
     def add_cleanup(self, callback: Callable):
@@ -247,7 +247,7 @@ class GracefulShutdown:
     
     async def cleanup(self):
         """Execute cleanup operations"""
-        monitor_logger.info("🧹 جاري التنظيف...")
+        monitor_logger.info("🧹 Cleaning up...")
         
         for callback in self._cleanup_callbacks:
             try:
@@ -256,9 +256,9 @@ class GracefulShutdown:
                 else:
                     callback()
             except Exception as e:
-                monitor_logger.error(f"خطأ في التنظيف: {e}")
+                monitor_logger.error(f"Cleanup error: {e}")
         
-        monitor_logger.info("✅ تم الإيقاف بنجاح")
+        monitor_logger.info("✅ Shutdown completed successfully")
 
 
 # Singleton instances

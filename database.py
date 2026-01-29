@@ -1,6 +1,6 @@
 """
-قاعدة بيانات SQLite للمشروع
-تخزين الرسائل، الكلمات المفتاحية، القنوات، والإحصائيات
+SQLite database for the project
+Stores messages, keywords, channels, and statistics
 """
 import aiosqlite
 from datetime import datetime
@@ -12,30 +12,30 @@ from logger import monitor_logger
 
 
 class Database:
-    """إدارة قاعدة البيانات"""
+    """Database management"""
     
     def __init__(self, db_path: Path = None):
         self.db_path = db_path or config.DATABASE_PATH
         self._connection = None
     
     async def connect(self):
-        """الاتصال بقاعدة البيانات"""
+        """Connect to database"""
         config.ensure_directories()
         self._connection = await aiosqlite.connect(self.db_path)
         self._connection.row_factory = aiosqlite.Row
         await self._create_tables()
-        monitor_logger.info(f"متصل بقاعدة البيانات: {self.db_path}")
+        monitor_logger.info(f"Connected to database: {self.db_path}")
     
     async def disconnect(self):
-        """قطع الاتصال"""
+        """Disconnect"""
         if self._connection:
             await self._connection.close()
             self._connection = None
     
     async def _create_tables(self):
-        """إنشاء الجداول"""
+        """Create tables"""
         await self._connection.executescript('''
-            -- جدول القنوات
+            -- Channels table
             CREATE TABLE IF NOT EXISTS channels (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 channel_id TEXT UNIQUE,
@@ -46,7 +46,7 @@ class Database:
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
             
-            -- جدول الكلمات المفتاحية
+            -- Keywords table
             CREATE TABLE IF NOT EXISTS keywords (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 keyword TEXT UNIQUE NOT NULL,
@@ -55,7 +55,7 @@ class Database:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
             
-            -- جدول الرسائل المكتشفة
+            -- Detected messages table
             CREATE TABLE IF NOT EXISTS detected_messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 message_id INTEGER NOT NULL,
@@ -69,7 +69,7 @@ class Database:
                 UNIQUE(message_id, channel_id, keyword_matched)
             );
             
-            -- جدول الإشعارات
+            -- Notifications table
             CREATE TABLE IF NOT EXISTS notifications (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 detected_message_id INTEGER,
@@ -81,7 +81,7 @@ class Database:
                 FOREIGN KEY (detected_message_id) REFERENCES detected_messages(id)
             );
             
-            -- جدول الإحصائيات اليومية
+            -- Daily statistics table
             CREATE TABLE IF NOT EXISTS daily_stats (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 date DATE UNIQUE NOT NULL,
@@ -91,7 +91,7 @@ class Database:
                 channels_active TEXT
             );
             
-            -- جدول إعدادات الجدولة
+            -- Schedule settings table
             CREATE TABLE IF NOT EXISTS schedules (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
@@ -102,17 +102,17 @@ class Database:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
             
-            -- إنشاء الفهارس
+            -- Create indexes
             CREATE INDEX IF NOT EXISTS idx_detected_messages_channel ON detected_messages(channel_id);
             CREATE INDEX IF NOT EXISTS idx_detected_messages_keyword ON detected_messages(keyword_matched);
             CREATE INDEX IF NOT EXISTS idx_detected_messages_date ON detected_messages(detected_at);
         ''')
         await self._connection.commit()
     
-    # ===================== القنوات =====================
+    # ===================== Channels =====================
     
     async def add_channel(self, channel_id: str, username: str = None, title: str = None) -> int:
-        """إضافة قناة جديدة"""
+        """Add new channel"""
         try:
             cursor = await self._connection.execute(
                 '''INSERT OR REPLACE INTO channels (channel_id, username, title, updated_at) 
@@ -122,11 +122,11 @@ class Database:
             await self._connection.commit()
             return cursor.lastrowid
         except Exception as e:
-            monitor_logger.error(f"خطأ في إضافة قناة: {e}")
+            monitor_logger.error(f"Error adding channel: {e}")
             return 0
     
     async def get_channels(self, active_only: bool = True) -> List[Dict]:
-        """جلب القنوات"""
+        """Fetch channels"""
         query = 'SELECT * FROM channels'
         if active_only:
             query += ' WHERE is_active = 1'
@@ -136,7 +136,7 @@ class Database:
         return [dict(row) for row in rows]
     
     async def toggle_channel(self, channel_id: str, is_active: bool) -> bool:
-        """تفعيل/تعطيل قناة"""
+        """Enable/disable channel"""
         await self._connection.execute(
             'UPDATE channels SET is_active = ?, updated_at = ? WHERE channel_id = ?',
             (1 if is_active else 0, datetime.now(), channel_id)
@@ -145,15 +145,15 @@ class Database:
         return True
     
     async def remove_channel(self, channel_id: str) -> bool:
-        """حذف قناة"""
+        """Delete channel"""
         await self._connection.execute('DELETE FROM channels WHERE channel_id = ?', (channel_id,))
         await self._connection.commit()
         return True
     
-    # ===================== الكلمات المفتاحية =====================
+    # ===================== Keywords =====================
     
     async def add_keyword(self, keyword: str, is_regex: bool = False) -> int:
-        """إضافة كلمة مفتاحية"""
+        """Add keyword"""
         try:
             cursor = await self._connection.execute(
                 'INSERT OR IGNORE INTO keywords (keyword, is_regex) VALUES (?, ?)',
@@ -162,11 +162,11 @@ class Database:
             await self._connection.commit()
             return cursor.lastrowid
         except Exception as e:
-            monitor_logger.error(f"خطأ في إضافة كلمة: {e}")
+            monitor_logger.error(f"Error adding keyword: {e}")
             return 0
     
     async def get_keywords(self, active_only: bool = True) -> List[Dict]:
-        """جلب الكلمات المفتاحية"""
+        """Fetch keywords"""
         query = 'SELECT * FROM keywords'
         if active_only:
             query += ' WHERE is_active = 1'
@@ -176,7 +176,7 @@ class Database:
         return [dict(row) for row in rows]
     
     async def toggle_keyword(self, keyword_id: int, is_active: bool) -> bool:
-        """تفعيل/تعطيل كلمة"""
+        """Enable/disable keyword"""
         await self._connection.execute(
             'UPDATE keywords SET is_active = ? WHERE id = ?',
             (1 if is_active else 0, keyword_id)
@@ -185,12 +185,12 @@ class Database:
         return True
     
     async def remove_keyword(self, keyword_id: int) -> bool:
-        """حذف كلمة مفتاحية"""
+        """Delete keyword"""
         await self._connection.execute('DELETE FROM keywords WHERE id = ?', (keyword_id,))
         await self._connection.commit()
         return True
     
-    # ===================== الرسائل المكتشفة =====================
+    # ===================== Detected Messages =====================
     
     async def add_detected_message(
         self,
@@ -201,7 +201,7 @@ class Database:
         message_text: str,
         message_link: str = None
     ) -> int:
-        """إضافة رسالة مكتشفة"""
+        """Add detected message"""
         try:
             cursor = await self._connection.execute(
                 '''INSERT OR IGNORE INTO detected_messages 
@@ -212,11 +212,11 @@ class Database:
             await self._connection.commit()
             return cursor.lastrowid
         except Exception as e:
-            monitor_logger.error(f"خطأ في حفظ الرسالة: {e}")
+            monitor_logger.error(f"Error saving message: {e}")
             return 0
     
     async def is_message_detected(self, message_id: int, channel_id: str, keyword: str) -> bool:
-        """التحقق إذا كانت الرسالة مكتشفة مسبقاً"""
+        """Check if message was previously detected"""
         cursor = await self._connection.execute(
             '''SELECT 1 FROM detected_messages 
                WHERE message_id = ? AND channel_id = ? AND keyword_matched = ?''',
@@ -233,7 +233,7 @@ class Database:
         date_from: datetime = None,
         date_to: datetime = None
     ) -> List[Dict]:
-        """جلب الرسائل المكتشفة مع فلترة"""
+        """Fetch detected messages with filtering"""
         query = 'SELECT * FROM detected_messages WHERE 1=1'
         params = []
         
@@ -261,14 +261,14 @@ class Database:
         return [dict(row) for row in rows]
     
     async def mark_notification_sent(self, message_id: int):
-        """تحديث حالة الإشعار"""
+        """Update notification status"""
         await self._connection.execute(
             'UPDATE detected_messages SET notification_sent = 1 WHERE id = ?',
             (message_id,)
         )
         await self._connection.commit()
     
-    # ===================== الإشعارات =====================
+    # ===================== Notifications =====================
     
     async def add_notification(
         self,
@@ -278,7 +278,7 @@ class Database:
         status: str = 'pending',
         error_message: str = None
     ) -> int:
-        """إضافة سجل إشعار"""
+        """Add notification record"""
         cursor = await self._connection.execute(
             '''INSERT INTO notifications 
                (detected_message_id, notification_type, destination, status, error_message, sent_at)
@@ -289,21 +289,21 @@ class Database:
         await self._connection.commit()
         return cursor.lastrowid
     
-    # ===================== الإحصائيات =====================
+    # ===================== Statistics =====================
     
     async def get_stats(self, days: int = 7) -> Dict[str, Any]:
-        """جلب إحصائيات عامة"""
-        # إجمالي الرسائل
+        """Fetch general statistics"""
+        # Total messages
         cursor = await self._connection.execute('SELECT COUNT(*) FROM detected_messages')
         total_messages = (await cursor.fetchone())[0]
         
-        # رسائل اليوم
+        # Today's messages
         cursor = await self._connection.execute(
             "SELECT COUNT(*) FROM detected_messages WHERE DATE(detected_at) = DATE('now')"
         )
         today_messages = (await cursor.fetchone())[0]
         
-        # أكثر الكلمات تطابقاً
+        # Most matched keywords
         cursor = await self._connection.execute(
             '''SELECT keyword_matched, COUNT(*) as count 
                FROM detected_messages 
@@ -312,7 +312,7 @@ class Database:
         )
         top_keywords = [dict(row) for row in await cursor.fetchall()]
         
-        # أكثر القنوات نشاطاً
+        # Most active channels
         cursor = await self._connection.execute(
             '''SELECT channel_username, COUNT(*) as count 
                FROM detected_messages 
@@ -321,7 +321,7 @@ class Database:
         )
         top_channels = [dict(row) for row in await cursor.fetchall()]
         
-        # إحصائيات آخر الأيام
+        # Recent days statistics
         cursor = await self._connection.execute(
             f'''SELECT DATE(detected_at) as date, COUNT(*) as count 
                 FROM detected_messages 
@@ -339,7 +339,7 @@ class Database:
             'daily_counts': daily_counts
         }
     
-    # ===================== الجدولة =====================
+    # ===================== Scheduling =====================
     
     async def add_schedule(
         self,
@@ -348,7 +348,7 @@ class Database:
         end_time: str,
         days_of_week: str = "0,1,2,3,4,5,6"
     ) -> int:
-        """إضافة جدول زمني"""
+        """Add schedule"""
         cursor = await self._connection.execute(
             '''INSERT INTO schedules (name, start_time, end_time, days_of_week)
                VALUES (?, ?, ?, ?)''',
@@ -358,7 +358,7 @@ class Database:
         return cursor.lastrowid
     
     async def get_schedules(self, active_only: bool = True) -> List[Dict]:
-        """جلب الجداول الزمنية"""
+        """Fetch schedules"""
         query = 'SELECT * FROM schedules'
         if active_only:
             query += ' WHERE is_active = 1'

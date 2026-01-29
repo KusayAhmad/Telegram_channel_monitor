@@ -1,6 +1,6 @@
 """
-نظام الإشعارات المتعدد
-يدعم Telegram، Discord، Email
+Multi-platform notification system
+Supports Telegram, Discord, and Email
 """
 import asyncio
 import aiohttp
@@ -17,7 +17,7 @@ from logger import monitor_logger
 
 @dataclass
 class NotificationMessage:
-    """بنية رسالة الإشعار"""
+    """Notification message structure"""
     title: str
     body: str
     keyword: str
@@ -25,7 +25,7 @@ class NotificationMessage:
     message_link: Optional[str] = None
     
     def to_telegram_format(self) -> str:
-        """تنسيق لتيليغرام"""
+        """Format for Telegram"""
         text = f"**🎯 {self.title}**\n\n"
         text += f"📌 **الكلمة:** `{self.keyword}`\n"
         text += f"📢 **القناة:** @{self.channel}\n\n"
@@ -35,7 +35,7 @@ class NotificationMessage:
         return text
     
     def to_discord_format(self) -> dict:
-        """تنسيق لـ Discord Embed"""
+        """Format for Discord Embed"""
         return {
             "embeds": [{
                 "title": f"🎯 {self.title}",
@@ -50,7 +50,7 @@ class NotificationMessage:
         }
     
     def to_email_format(self) -> tuple:
-        """تنسيق للبريد الإلكتروني"""
+        """Format for email"""
         subject = f"🎯 تنبيه: تم العثور على '{self.keyword}' في @{self.channel}"
         
         html = f"""
@@ -73,7 +73,7 @@ class NotificationMessage:
 
 
 class NotificationProvider(ABC):
-    """الفئة الأساسية لمزودي الإشعارات"""
+    """Base class for notification providers"""
     
     @property
     @abstractmethod
@@ -90,7 +90,7 @@ class NotificationProvider(ABC):
 
 
 class TelegramNotifier(NotificationProvider):
-    """إشعارات تيليغرام عبر حساب المستخدم"""
+    """Telegram notifications via user account"""
     
     name = "telegram"
     
@@ -103,7 +103,7 @@ class TelegramNotifier(NotificationProvider):
     
     async def send(self, message: NotificationMessage) -> bool:
         if not self.is_configured():
-            monitor_logger.warning("Telegram غير مُهيأ")
+            monitor_logger.warning("Telegram not configured")
             return False
         
         try:
@@ -119,7 +119,7 @@ class TelegramNotifier(NotificationProvider):
 
 
 class DiscordNotifier(NotificationProvider):
-    """إشعارات Discord عبر Webhook"""
+    """Discord notifications via Webhook"""
     
     name = "discord"
     
@@ -154,7 +154,7 @@ class DiscordNotifier(NotificationProvider):
 
 
 class EmailNotifier(NotificationProvider):
-    """إشعارات البريد الإلكتروني"""
+    """Email notifications"""
     
     name = "email"
     
@@ -206,42 +206,42 @@ class EmailNotifier(NotificationProvider):
 
 
 class NotificationManager:
-    """مدير الإشعارات - يُنسق بين جميع المزودين"""
+    """Notification manager - coordinates all providers"""
     
     def __init__(self):
         self.providers: List[NotificationProvider] = []
     
     def add_provider(self, provider: NotificationProvider):
-        """إضافة مزود إشعارات"""
+        """Add notification provider"""
         if provider.is_configured():
             self.providers.append(provider)
-            monitor_logger.info(f"تم تفعيل مزود الإشعارات: {provider.name}")
+            monitor_logger.info(f"Notification provider enabled: {provider.name}")
     
     def setup_telegram(self, client):
-        """إعداد تيليغرام"""
+        """Setup Telegram"""
         self.add_provider(TelegramNotifier(client))
     
     def setup_discord(self):
-        """إعداد Discord"""
+        """Setup Discord"""
         self.add_provider(DiscordNotifier())
     
     def setup_email(self):
-        """إعداد البريد"""
+        """Setup email"""
         self.add_provider(EmailNotifier())
     
     def setup_all(self, telegram_client=None):
-        """إعداد جميع المزودين المتاحين"""
+        """Setup all available providers"""
         if telegram_client:
             self.setup_telegram(telegram_client)
         self.setup_discord()
         self.setup_email()
     
     async def notify(self, message: NotificationMessage) -> dict:
-        """إرسال إشعار لجميع المزودين"""
+        """Send notification to all providers"""
         results = {}
         
         if not self.providers:
-            monitor_logger.warning("لا توجد مزودات إشعارات مُهيأة")
+            monitor_logger.warning("No notification providers configured")
             return results
         
         tasks = []
@@ -257,7 +257,7 @@ class NotificationManager:
         provider: NotificationProvider, 
         message: NotificationMessage
     ) -> tuple:
-        """إرسال إشعار عبر مزود محدد"""
+        """Send notification via specific provider"""
         success = await provider.send(message)
         return provider.name, success
     
@@ -268,7 +268,7 @@ class NotificationManager:
         message_text: str,
         message_link: str = None
     ):
-        """إشعار عند العثور على كلمة مفتاحية"""
+        """Notify when keyword is found"""
         notification = NotificationMessage(
             title="تم العثور على كلمة مفتاحية!",
             body=message_text[:1000] if message_text else "",

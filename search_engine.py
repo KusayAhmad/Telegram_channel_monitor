@@ -1,6 +1,6 @@
 """
-محرك البحث المتقدم
-يدعم البحث العادي والتعابير النمطية (Regex)
+Advanced Search Engine
+Supports regular search and regex patterns
 """
 import re
 from typing import List, Tuple, Optional
@@ -11,37 +11,37 @@ from logger import monitor_logger
 
 
 class MatchType(Enum):
-    """نوع التطابق"""
-    EXACT = "exact"           # تطابق كامل
-    CONTAINS = "contains"     # يحتوي على
-    STARTS_WITH = "starts"    # يبدأ بـ
-    ENDS_WITH = "ends"        # ينتهي بـ
-    REGEX = "regex"           # تعبير نمطي
-    CASE_SENSITIVE = "case"   # حساس لحالة الأحرف
+    """Match type"""
+    EXACT = "exact"           # Exact match
+    CONTAINS = "contains"     # Contains
+    STARTS_WITH = "starts"    # Starts with
+    ENDS_WITH = "ends"        # Ends with
+    REGEX = "regex"           # Regular expression
+    CASE_SENSITIVE = "case"   # Case sensitive
 
 
 @dataclass
 class SearchPattern:
-    """نمط البحث"""
+    """Search pattern"""
     pattern: str
     match_type: MatchType = MatchType.CONTAINS
     case_sensitive: bool = False
     compiled_regex: Optional[re.Pattern] = None
     
     def __post_init__(self):
-        """تجميع الـ Regex إذا لزم الأمر"""
+        """Compile regex if necessary"""
         if self.match_type == MatchType.REGEX:
             try:
                 flags = 0 if self.case_sensitive else re.IGNORECASE
                 self.compiled_regex = re.compile(self.pattern, flags)
             except re.error as e:
-                monitor_logger.error(f"Regex غير صالح '{self.pattern}': {e}")
+                monitor_logger.error(f"Invalid regex '{self.pattern}': {e}")
                 self.compiled_regex = None
 
 
 @dataclass
 class MatchResult:
-    """نتيجة التطابق"""
+    """Match result"""
     matched: bool
     pattern: str
     match_type: MatchType
@@ -53,7 +53,7 @@ class MatchResult:
 
 
 class SearchEngine:
-    """محرك البحث المتقدم"""
+    """Advanced search engine"""
     
     def __init__(self):
         self.patterns: List[SearchPattern] = []
@@ -64,33 +64,33 @@ class SearchEngine:
         match_type: MatchType = MatchType.CONTAINS,
         case_sensitive: bool = False
     ):
-        """إضافة نمط بحث"""
+        """Add search pattern"""
         search_pattern = SearchPattern(
             pattern=pattern,
             match_type=match_type,
             case_sensitive=case_sensitive
         )
         self.patterns.append(search_pattern)
-        monitor_logger.debug(f"تمت إضافة نمط: {pattern} ({match_type.value})")
+        monitor_logger.debug(f"Pattern added: {pattern} ({match_type.value})")
     
     def add_regex(self, pattern: str, case_sensitive: bool = False):
-        """إضافة تعبير نمطي"""
+        """Add regular expression"""
         self.add_pattern(pattern, MatchType.REGEX, case_sensitive)
     
     def add_keyword(self, keyword: str, case_sensitive: bool = False):
-        """إضافة كلمة مفتاحية عادية"""
+        """Add regular keyword"""
         self.add_pattern(keyword, MatchType.CONTAINS, case_sensitive)
     
     def clear_patterns(self):
-        """مسح جميع الأنماط"""
+        """Clear all patterns"""
         self.patterns.clear()
     
     def search(self, text: str) -> List[MatchResult]:
         """
-        البحث في النص عن جميع الأنماط
+        Search text for all patterns
         
         Returns:
-            قائمة بنتائج التطابق
+            List of match results
         """
         if not text:
             return []
@@ -105,16 +105,16 @@ class SearchEngine:
         return results
     
     def search_first(self, text: str) -> Optional[MatchResult]:
-        """البحث عن أول تطابق فقط"""
+        """Search for first match only"""
         results = self.search(text)
         return results[0] if results else None
     
     def has_match(self, text: str) -> bool:
-        """التحقق من وجود أي تطابق"""
+        """Check if any match exists"""
         return bool(self.search_first(text))
     
     def _match_pattern(self, text: str, pattern: SearchPattern) -> MatchResult:
-        """تطبيق نمط على النص"""
+        """Apply pattern to text"""
         search_text = text if pattern.case_sensitive else text.lower()
         search_pattern = pattern.pattern if pattern.case_sensitive else pattern.pattern.lower()
         
@@ -169,11 +169,11 @@ class SearchEngine:
         regex_patterns: List[str] = None
     ) -> 'SearchEngine':
         """
-        إنشاء محرك بحث من قائمة كلمات
+        Create search engine from word list
         
         Args:
-            keywords: كلمات مفتاحية عادية
-            regex_patterns: تعابير نمطية
+            keywords: Regular keywords
+            regex_patterns: Regular expressions
         """
         engine = SearchEngine()
         
@@ -188,33 +188,33 @@ class SearchEngine:
 
 
 class AdvancedPatterns:
-    """أنماط بحث متقدمة جاهزة"""
+    """Ready-made advanced search patterns"""
     
-    # أنماط الأسعار
+    # Price patterns
     PRICE_USD = r'\$\d+(?:\.\d{2})?'
     PRICE_EUR = r'€\d+(?:\.\d{2})?'
     PRICE_ANY = r'[\$€£¥]\d+(?:\.\d{2})?'
     
-    # أنماط الروابط
+    # Link patterns
     URL = r'https?://[^\s<>"{}|\\^`\[\]]+'
     TELEGRAM_LINK = r't\.me/[a-zA-Z0-9_]+'
     AMAZON_LINK = r'amazon\.[a-z.]+/[^\s]+'
     
-    # أنماط الخصومات
+    # Discount patterns
     DISCOUNT_PERCENT = r'\d+%\s*(off|خصم|discount)?'
     DISCOUNT_CODE = r'(code|كود|coupon)[\s:]*[A-Z0-9]+'
     
-    # أنماط التواريخ
+    # Date patterns
     DATE_DMY = r'\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4}'
     DATE_YMD = r'\d{4}[/\-]\d{1,2}[/\-]\d{1,2}'
     
-    # أنماط الأرقام
+    # Number patterns
     PHONE_INTL = r'\+\d{1,3}[\s\-]?\d{6,14}'
     DIGITS = r'\d+'
     
     @classmethod
     def get_ecommerce_patterns(cls) -> List[str]:
-        """أنماط للتجارة الإلكترونية"""
+        """E-commerce patterns"""
         return [
             cls.PRICE_ANY,
             cls.DISCOUNT_PERCENT,
@@ -224,7 +224,7 @@ class AdvancedPatterns:
     
     @classmethod
     def get_link_patterns(cls) -> List[str]:
-        """أنماط الروابط"""
+        """Link patterns"""
         return [
             cls.URL,
             cls.TELEGRAM_LINK
@@ -233,13 +233,13 @@ class AdvancedPatterns:
 
 def parse_keyword_string(keyword_str: str) -> Tuple[str, MatchType, bool]:
     """
-    تحليل سلسلة كلمة مفتاحية مع خيارات
+    Parse keyword string with options
     
-    الصيغة: [نوع:]كلمة[:حساس]
-    أمثلة:
-        - "test" -> عادي
-        - "regex:test.*" -> تعبير نمطي
-        - "exact:test:cs" -> تطابق كامل، حساس لحالة الأحرف
+    Format: [type:]keyword[:sensitive]
+    Examples:
+        - "test" -> regular
+        - "regex:test.*" -> regular expression
+        - "exact:test:cs" -> exact match, case sensitive
     """
     parts = keyword_str.split(':')
     

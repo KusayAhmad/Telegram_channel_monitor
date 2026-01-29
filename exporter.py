@@ -13,14 +13,14 @@ from logger import monitor_logger
 
 
 class DataExporter:
-    """تصدير البيانات إلى صيغ مختلفة"""
+    """Export data to various formats"""
     
     def __init__(self, export_dir: Path = None):
         self.export_dir = export_dir or config.EXPORT_DIR
         config.ensure_directories()
     
     def _generate_filename(self, extension: str) -> Path:
-        """إنشاء اسم ملف فريد"""
+        """Generate unique filename"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         return self.export_dir / f"export_{timestamp}.{extension}"
     
@@ -29,15 +29,15 @@ class DataExporter:
         data: List[Dict[str, Any]], 
         filename: Path = None
     ) -> Optional[Path]:
-        """تصدير إلى CSV"""
+        """Export to CSV"""
         if not data:
-            monitor_logger.warning("لا توجد بيانات للتصدير")
+            monitor_logger.warning("No data to export")
             return None
         
         filepath = filename or self._generate_filename("csv")
         
         try:
-            # تحديد الأعمدة
+            # Define columns
             fieldnames = [
                 'id', 'message_id', 'channel_id', 'channel_username',
                 'keyword_matched', 'message_text', 'message_link',
@@ -49,11 +49,11 @@ class DataExporter:
                 writer.writeheader()
                 writer.writerows(data)
             
-            monitor_logger.info(f"تم تصدير {len(data)} سجل إلى {filepath}")
+            monitor_logger.info(f"Exported {len(data)} records to {filepath}")
             return filepath
             
         except Exception as e:
-            monitor_logger.error(f"خطأ في تصدير CSV: {e}")
+            monitor_logger.error(f"Error exporting CSV: {e}")
             return None
     
     async def export_to_json(
@@ -62,15 +62,15 @@ class DataExporter:
         filename: Path = None,
         pretty: bool = True
     ) -> Optional[Path]:
-        """تصدير إلى JSON"""
+        """Export to JSON"""
         if not data:
-            monitor_logger.warning("لا توجد بيانات للتصدير")
+            monitor_logger.warning("No data to export")
             return None
         
         filepath = filename or self._generate_filename("json")
         
         try:
-            # تحويل datetime إلى string
+            # Convert datetime to string
             serializable_data = []
             for item in data:
                 clean_item = {}
@@ -93,15 +93,15 @@ class DataExporter:
                 else:
                     json.dump(export_obj, f, ensure_ascii=False)
             
-            monitor_logger.info(f"تم تصدير {len(data)} سجل إلى {filepath}")
+            monitor_logger.info(f"Exported {len(data)} records to {filepath}")
             return filepath
             
         except Exception as e:
-            monitor_logger.error(f"خطأ في تصدير JSON: {e}")
+            monitor_logger.error(f"Error exporting JSON: {e}")
             return None
     
     async def export_stats_report(self, stats: Dict[str, Any]) -> Optional[Path]:
-        """تصدير تقرير الإحصائيات"""
+        """Export statistics report"""
         filepath = self._generate_filename("txt")
         
         try:
@@ -136,11 +136,11 @@ class DataExporter:
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(report)
             
-            monitor_logger.info(f"تم تصدير التقرير إلى {filepath}")
+            monitor_logger.info(f"Report exported to {filepath}")
             return filepath
             
         except Exception as e:
-            monitor_logger.error(f"خطأ في تصدير التقرير: {e}")
+            monitor_logger.error(f"Error exporting report: {e}")
             return None
 
 
@@ -153,21 +153,21 @@ except ImportError:
 
 
 class AdvancedExporter(DataExporter):
-    """تصدير متقدم باستخدام Pandas"""
+    """Advanced export using Pandas"""
     
     def __init__(self, export_dir: Path = None):
         super().__init__(export_dir)
         if not HAS_PANDAS:
-            monitor_logger.warning("Pandas غير مثبت - بعض ميزات التصدير لن تعمل")
+            monitor_logger.warning("Pandas not installed - some export features will not work")
     
     async def export_to_excel(
         self, 
         data: List[Dict[str, Any]], 
         filename: Path = None
     ) -> Optional[Path]:
-        """تصدير إلى Excel"""
+        """Export to Excel"""
         if not HAS_PANDAS:
-            monitor_logger.error("Pandas مطلوب للتصدير إلى Excel")
+            monitor_logger.error("Pandas required for Excel export")
             return None
         
         if not data:
@@ -179,11 +179,11 @@ class AdvancedExporter(DataExporter):
             df = pd.DataFrame(data)
             df.to_excel(filepath, index=False, engine='openpyxl')
             
-            monitor_logger.info(f"تم تصدير {len(data)} سجل إلى {filepath}")
+            monitor_logger.info(f"Exported {len(data)} records to {filepath}")
             return filepath
             
         except Exception as e:
-            monitor_logger.error(f"خطأ في تصدير Excel: {e}")
+            monitor_logger.error(f"Error exporting Excel: {e}")
             return None
     
     async def export_filtered(
@@ -195,9 +195,9 @@ class AdvancedExporter(DataExporter):
         date_from: datetime = None,
         date_to: datetime = None
     ) -> Optional[Path]:
-        """تصدير مُفلتر"""
+        """Filtered export"""
         if not HAS_PANDAS:
-            # استخدم التصدير العادي
+            # Use basic export
             filtered = data
             if channel_filter:
                 filtered = [d for d in filtered if d.get('channel_username') == channel_filter]

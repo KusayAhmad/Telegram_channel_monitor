@@ -1,6 +1,6 @@
 """
-بوت تيليغرام للتحكم في نظام المراقبة
-يتيح إدارة القنوات والكلمات المفتاحية والإحصائيات
+Telegram bot for controlling the monitoring system
+Allows management of channels, keywords, and statistics
 """
 import asyncio
 from pyrogram import Client, filters
@@ -18,7 +18,7 @@ from logger import monitor_logger
 
 
 class MonitorBot:
-    """بوت التحكم في نظام المراقبة"""
+    """Bot for controlling the monitoring system"""
     
     def __init__(self, client: Client):
         self.client = client
@@ -26,8 +26,8 @@ class MonitorBot:
         self._setup_handlers()
     
     def _setup_handlers(self):
-        """إعداد معالجات الأوامر"""
-        # الأوامر الأساسية
+        """Setup command handlers"""
+        # Basic commands
         self.client.add_handler(MessageHandler(
             self._cmd_start, 
             filters.command("start") & filters.user(self.admin_id)
@@ -41,7 +41,7 @@ class MonitorBot:
             filters.command("status") & filters.user(self.admin_id)
         ))
         
-        # إدارة القنوات
+        # Channel management
         self.client.add_handler(MessageHandler(
             self._cmd_channels,
             filters.command("channels") & filters.user(self.admin_id)
@@ -55,7 +55,7 @@ class MonitorBot:
             filters.command("removechannel") & filters.user(self.admin_id)
         ))
         
-        # إدارة الكلمات
+        # Keyword management
         self.client.add_handler(MessageHandler(
             self._cmd_keywords,
             filters.command("keywords") & filters.user(self.admin_id)
@@ -69,7 +69,7 @@ class MonitorBot:
             filters.command("removekeyword") & filters.user(self.admin_id)
         ))
         
-        # الإحصائيات والتصدير
+        # Statistics and export
         self.client.add_handler(MessageHandler(
             self._cmd_stats,
             filters.command("stats") & filters.user(self.admin_id)
@@ -88,10 +88,10 @@ class MonitorBot:
             self._callback_handler
         ))
     
-    # ================== الأوامر الأساسية ==================
+    # ================== Basic Commands ==================
     
     async def _cmd_start(self, client: Client, message: Message):
-        """أمر البداية"""
+        """Start command"""
         keyboard = InlineKeyboardMarkup([
             [
                 InlineKeyboardButton("📢 القنوات", callback_data="menu_channels"),
@@ -113,7 +113,7 @@ class MonitorBot:
         )
     
     async def _cmd_help(self, client: Client, message: Message):
-        """أمر المساعدة"""
+        """Help command"""
         help_text = """
 📚 **قائمة الأوامر المتاحة:**
 
@@ -140,7 +140,7 @@ class MonitorBot:
         await message.reply(help_text)
     
     async def _cmd_status(self, client: Client, message: Message):
-        """عرض حالة النظام"""
+        """Display system status"""
         channels = await db.get_channels()
         keywords = await db.get_keywords()
         stats = await db.get_stats(days=1)
@@ -156,10 +156,10 @@ class MonitorBot:
 """
         await message.reply(status_text)
     
-    # ================== إدارة القنوات ==================
+    # ================== Channel Management ==================
     
     async def _cmd_channels(self, client: Client, message: Message):
-        """عرض القنوات المُراقبة"""
+        """Display monitored channels"""
         channels = await db.get_channels()
         
         if not channels:
@@ -178,7 +178,7 @@ class MonitorBot:
         await message.reply(text, reply_markup=keyboard)
     
     async def _cmd_add_channel(self, client: Client, message: Message):
-        """إضافة قناة جديدة"""
+        """Add a new channel"""
         args = message.text.split(maxsplit=1)
         
         if len(args) < 2:
@@ -188,7 +188,7 @@ class MonitorBot:
         channel = args[1].strip().lstrip('@')
         
         try:
-            # محاولة الحصول على معلومات القناة
+            # Attempt to get channel information
             chat = await client.get_chat(channel)
             await db.add_channel(
                 channel_id=str(chat.id),
@@ -201,13 +201,13 @@ class MonitorBot:
                 f"📢 **القناة:** @{chat.username}\n"
                 f"📝 **الاسم:** {chat.title}"
             )
-            monitor_logger.info(f"تمت إضافة قناة: @{channel}")
+            monitor_logger.info(f"Channel added: @{channel}")
             
         except Exception as e:
             await message.reply(f"❌ فشل في إضافة القناة: {str(e)}")
     
     async def _cmd_remove_channel(self, client: Client, message: Message):
-        """حذف قناة"""
+        """Remove a channel"""
         args = message.text.split(maxsplit=1)
         
         if len(args) < 2:
@@ -216,7 +216,7 @@ class MonitorBot:
         
         channel = args[1].strip().lstrip('@')
         
-        # البحث عن القناة في قاعدة البيانات
+        # Search for the channel in the database
         channels = await db.get_channels(active_only=False)
         found = None
         for ch in channels:
@@ -227,14 +227,14 @@ class MonitorBot:
         if found:
             await db.remove_channel(found['channel_id'])
             await message.reply(f"✅ تم حذف القناة @{channel} بنجاح!")
-            monitor_logger.info(f"تم حذف قناة: @{channel}")
+            monitor_logger.info(f"Channel removed: @{channel}")
         else:
             await message.reply(f"❌ لم يتم العثور على القناة @{channel}")
     
-    # ================== إدارة الكلمات ==================
+    # ================== Keyword Management ==================
     
     async def _cmd_keywords(self, client: Client, message: Message):
-        """عرض الكلمات المفتاحية"""
+        """Display keywords"""
         keywords = await db.get_keywords()
         
         if not keywords:
@@ -254,7 +254,7 @@ class MonitorBot:
         await message.reply(text, reply_markup=keyboard)
     
     async def _cmd_add_keyword(self, client: Client, message: Message):
-        """إضافة كلمة مفتاحية"""
+        """Add a keyword"""
         args = message.text.split(maxsplit=1)
         
         if len(args) < 2:
@@ -269,7 +269,7 @@ class MonitorBot:
         is_regex = keyword.startswith("regex:")
         
         if is_regex:
-            keyword = keyword[6:]  # إزالة "regex:"
+            keyword = keyword[6:]  # Remove "regex:"
         
         await db.add_keyword(keyword, is_regex)
         
@@ -278,10 +278,10 @@ class MonitorBot:
             f"🔑 **الكلمة:** `{keyword}`\n"
             f"🔤 **النوع:** {'Regex' if is_regex else 'عادية'}"
         )
-        monitor_logger.info(f"تمت إضافة كلمة: {keyword}")
+        monitor_logger.info(f"Keyword added: {keyword}")
     
     async def _cmd_remove_keyword(self, client: Client, message: Message):
-        """حذف كلمة مفتاحية"""
+        """Remove a keyword"""
         args = message.text.split(maxsplit=1)
         
         if len(args) < 2:
@@ -300,14 +300,14 @@ class MonitorBot:
         if found:
             await db.remove_keyword(found['id'])
             await message.reply(f"✅ تم حذف الكلمة `{keyword}` بنجاح!")
-            monitor_logger.info(f"تم حذف كلمة: {keyword}")
+            monitor_logger.info(f"Keyword removed: {keyword}")
         else:
             await message.reply(f"❌ لم يتم العثور على الكلمة `{keyword}`")
     
-    # ================== الإحصائيات ==================
+    # ================== Statistics ==================
     
     async def _cmd_stats(self, client: Client, message: Message):
-        """عرض الإحصائيات"""
+        """Display statistics"""
         stats = await db.get_stats(days=7)
         
         text = f"""
@@ -328,7 +328,7 @@ class MonitorBot:
         await message.reply(text)
     
     async def _cmd_recent(self, client: Client, message: Message):
-        """عرض آخر الرسائل المكتشفة"""
+        """Display recently detected messages"""
         messages = await db.get_detected_messages(limit=10)
         
         if not messages:
@@ -349,7 +349,7 @@ class MonitorBot:
         await message.reply(text)
     
     async def _cmd_export(self, client: Client, message: Message):
-        """تصدير البيانات"""
+        """Export data"""
         from exporter import DataExporter
         
         exporter = DataExporter()
@@ -369,7 +369,7 @@ class MonitorBot:
     # ================== Callback Handler ==================
     
     async def _callback_handler(self, client: Client, callback: CallbackQuery):
-        """معالجة الضغط على الأزرار"""
+        """Handle button clicks"""
         data = callback.data
         
         if data == "menu_channels":
@@ -390,7 +390,7 @@ class MonitorBot:
         await callback.answer()
     
     async def _do_export(self, client: Client, callback: CallbackQuery, format: str):
-        """تنفيذ التصدير"""
+        """Execute export"""
         from exporter import DataExporter
         
         await callback.message.edit_text("⏳ جاري التصدير...")
@@ -413,7 +413,7 @@ class MonitorBot:
             await callback.message.edit_text("❌ فشل في التصدير")
 
 
-# دالة مساعدة لإنشاء البوت
+# Helper function to create the bot
 def setup_bot(client: Client) -> MonitorBot:
-    """إنشاء وإعداد البوت"""
+    """Create and setup the bot"""
     return MonitorBot(client)
