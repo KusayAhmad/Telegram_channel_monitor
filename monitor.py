@@ -29,6 +29,8 @@ class ChannelMonitor:
         self.monitored_channels: Set[str] = set()
         self.is_running = False
         self.logger = MonitorLogger('monitor')
+        self._reload_task = None
+        self._reload_interval = 30  # Reload config every 30 seconds
     
     async def initialize(self):
         """Initialize the system"""
@@ -73,8 +75,8 @@ class ChannelMonitor:
         # Setup notification system
         notification_manager.setup_all(self.client)
         
-        # Setup bot
-        setup_bot(self.client)
+        # Setup bot with monitor instance
+        self.bot = setup_bot(self.client, self)
         
         self.logger.info("System initialized successfully")
     
@@ -195,6 +197,18 @@ class ChannelMonitor:
         await self._load_channels()
         self.logger.info("Configuration reloaded")
     
+    async def _auto_reload_config(self):
+        """Automatically reload config periodically"""
+        while self.is_running:
+            try:
+                await asyncio.sleep(self._reload_interval)
+                if self.is_running:
+                    await self.reload_config()
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                self.logger.error(f"Error in auto-reload: {e}")
+    
     async def start(self):
         """Start monitoring"""
         if self.is_running:
@@ -212,6 +226,9 @@ class ChannelMonitor:
         me = await self.client.get_me()
         self.logger.info(f"Logged in as: {me.first_name} (@{me.username})")
         
+        # Start auto-reload task
+        self._reload_task = asyncio.create_task(self._auto_reload_config())
+        
         # Use Pyrogram's idle() to keep the client running
         # This properly handles updates and keeps connection alive
         from pyrogram import idle
@@ -224,6 +241,14 @@ class ChannelMonitor:
         
         self.is_running = False
         self.logger.monitor_stopped()
+        
+        # Cancel auto-reload task
+        if self._reload_task and not self._reload_task.done():
+            self._reload_task.cancel()
+            try:
+                await self._reload_task
+            except asyncio.CancelledError:
+                pass
         
         # Close client with error handling
         try:

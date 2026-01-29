@@ -23,7 +23,12 @@ class MonitorBot:
     def __init__(self, client: Client):
         self.client = client
         self.admin_id = config.NOTIFY_USER_ID
+        self.monitor_instance = None  # Will be set later
         self._setup_handlers()
+    
+    def set_monitor_instance(self, monitor):
+        """Set the monitor instance for reload command"""
+        self.monitor_instance = monitor
     
     def _setup_handlers(self):
         """Setup command handlers"""
@@ -81,6 +86,12 @@ class MonitorBot:
         self.client.add_handler(MessageHandler(
             self._cmd_export,
             filters.command("export") & filters.user(self.admin_id)
+        ))
+        
+        # System control
+        self.client.add_handler(MessageHandler(
+            self._cmd_reload,
+            filters.command("reload") & filters.user(self.admin_id)
         ))
         
         # Callback Query Handler
@@ -411,9 +422,35 @@ class MonitorBot:
             )
         else:
             await callback.message.edit_text("❌ فشل في التصدير")
+    
+    # ================== System Control ==================
+    
+    async def _cmd_reload(self, client: Client, message: Message):
+        """Reload configuration"""
+        if not self.monitor_instance:
+            await message.reply("❌ لا يمكن إعادة التحميل - النظام غير متصل")
+            return
+        
+        try:
+            await message.reply("⏳ جاري إعادة تحميل الإعدادات...")
+            await self.monitor_instance.reload_config()
+            
+            channels_count = len(self.monitor_instance.monitored_channels)
+            keywords_count = len(self.monitor_instance.search_engine.patterns)
+            
+            await message.reply(
+                f"✅ تم إعادة التحميل بنجاح!\n\n"
+                f"📢 القنوات النشطة: {channels_count}\n"
+                f"🔑 الكلمات المفتاحية: {keywords_count}"
+            )
+        except Exception as e:
+            await message.reply(f"❌ خطأ في إعادة التحميل: {str(e)}")
 
 
 # Helper function to create the bot
-def setup_bot(client: Client) -> MonitorBot:
+def setup_bot(client: Client, monitor=None) -> MonitorBot:
     """Create and setup the bot"""
-    return MonitorBot(client)
+    bot = MonitorBot(client)
+    if monitor:
+        bot.set_monitor_instance(monitor)
+    return bot
