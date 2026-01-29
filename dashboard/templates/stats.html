@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}الإحصائيات{% endblock %}
+
+{% block content %}
+<h2 class="page-title"><i class="bi bi-graph-up"></i> الإحصائيات</h2>
+
+<!-- Overview Stats -->
+<div class="row">
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <i class="bi bi-chat-dots text-primary"></i>
+            <div class="stat-number">{{ stats.total_messages }}</div>
+            <div class="stat-label">إجمالي الرسائل</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <i class="bi bi-calendar-day text-success"></i>
+            <div class="stat-number">{{ stats.today_messages }}</div>
+            <div class="stat-label">رسائل اليوم</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <i class="bi bi-calendar-week text-warning"></i>
+            <div class="stat-number">{{ stats.daily_counts | sum(attribute='count') }}</div>
+            <div class="stat-label">آخر 30 يوم</div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Daily Chart -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-bar-chart"></i> الرسائل اليومية
+            </div>
+            <div class="card-body">
+                <canvas id="dailyChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Keywords Pie -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-pie-chart"></i> توزيع الكلمات
+            </div>
+            <div class="card-body">
+                <canvas id="keywordsChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Top Keywords Table -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-trophy"></i> أكثر الكلمات تطابقاً
+            </div>
+            <div class="card-body">
+                {% if stats.top_keywords %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>الكلمة</th>
+                                <th>العدد</th>
+                                <th>النسبة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for kw in stats.top_keywords %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td><code>{{ kw.keyword_matched }}</code></td>
+                                <td>{{ kw.count }}</td>
+                                <td>
+                                    {% set percentage = (kw.count / stats.total_messages * 100) if stats.total_messages > 0 else 0 %}
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar bg-primary" 
+                                             style="width: {{ percentage }}%">
+                                            {{ "%.1f"|format(percentage) }}%
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">لا توجد بيانات</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Channels Table -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-broadcast"></i> أكثر القنوات نشاطاً
+            </div>
+            <div class="card-body">
+                {% if stats.top_channels %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>القناة</th>
+                                <th>العدد</th>
+                                <th>النسبة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ch in stats.top_channels %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>
+                                    <a href="https://t.me/{{ ch.channel_username }}" target="_blank"
+                                       class="text-info text-decoration-none">
+                                        @{{ ch.channel_username }}
+                                    </a>
+                                </td>
+                                <td>{{ ch.count }}</td>
+                                <td>
+                                    {% set percentage = (ch.count / stats.total_messages * 100) if stats.total_messages > 0 else 0 %}
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar bg-info" 
+                                             style="width: {{ percentage }}%">
+                                            {{ "%.1f"|format(percentage) }}%
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">لا توجد بيانات</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const dailyCounts = {{ stats.daily_counts | tojson }};
+    const topKeywords = {{ stats.top_keywords | tojson }};
+    
+    // Daily Chart
+    new Chart(document.getElementById('dailyChart'), {
+        type: 'bar',
+        data: {
+            labels: dailyCounts.map(d => d.date).reverse(),
+            datasets: [{
+                label: 'الرسائل',
+                data: dailyCounts.map(d => d.count).reverse(),
+                backgroundColor: 'rgba(0, 136, 204, 0.7)',
+                borderColor: '#0088cc',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { labels: { color: '#eee' } }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#aaa' },
+                    grid: { color: 'rgba(255,255,255,0.1)' }
+                },
+                y: {
+                    ticks: { color: '#aaa' },
+                    grid: { color: 'rgba(255,255,255,0.1)' }
+                }
+            }
+        }
+    });
+    
+    // Keywords Pie Chart
+    if (topKeywords.length > 0) {
+        new Chart(document.getElementById('keywordsChart'), {
+            type: 'doughnut',
+            data: {
+                labels: topKeywords.slice(0, 5).map(k => k.keyword_matched),
+                datasets: [{
+                    data: topKeywords.slice(0, 5).map(k => k.count),
+                    backgroundColor: [
+                        '#0088cc', '#28a745', '#ffc107', '#dc3545', '#6c757d'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#eee' }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

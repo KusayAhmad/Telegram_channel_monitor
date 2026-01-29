@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}الرسائل{% endblock %}
+
+{% block content %}
+<h2 class="page-title"><i class="bi bi-chat-dots"></i> الرسائل المكتشفة</h2>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form class="row g-3" method="GET">
+            <div class="col-md-4">
+                <input type="text" class="form-control" name="channel" 
+                       placeholder="فلترة بالقناة" value="{{ request.args.get('channel', '') }}">
+            </div>
+            <div class="col-md-4">
+                <input type="text" class="form-control" name="keyword" 
+                       placeholder="فلترة بالكلمة" value="{{ request.args.get('keyword', '') }}">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-filter"></i> فلترة
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Messages List -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list"></i> الرسائل</span>
+        <div>
+            <a href="/api/export/csv" class="btn btn-sm btn-outline-success">
+                <i class="bi bi-download"></i> CSV
+            </a>
+            <a href="/api/export/json" class="btn btn-sm btn-outline-info">
+                <i class="bi bi-download"></i> JSON
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if messages %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>القناة</th>
+                        <th>الكلمة</th>
+                        <th>المحتوى</th>
+                        <th>الوقت</th>
+                        <th>رابط</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for msg in messages %}
+                    <tr>
+                        <td>{{ msg.id }}</td>
+                        <td>
+                            <a href="https://t.me/{{ msg.channel_username }}" target="_blank" 
+                               class="text-info text-decoration-none">
+                                @{{ msg.channel_username }}
+                            </a>
+                        </td>
+                        <td><code>{{ msg.keyword_matched }}</code></td>
+                        <td>
+                            <span title="{{ msg.message_text }}">
+                                {{ msg.message_text[:100] if msg.message_text else '-' }}{% if msg.message_text and msg.message_text|length > 100 %}...{% endif %}
+                            </span>
+                        </td>
+                        <td>{{ msg.detected_at }}</td>
+                        <td>
+                            {% if msg.message_link %}
+                            <a href="{{ msg.message_link }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-link-45deg"></i>
+                            </a>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <nav aria-label="التنقل بين الصفحات">
+            <ul class="pagination justify-content-center">
+                {% if page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page - 1 }}">السابق</a>
+                </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">{{ page }}</span>
+                </li>
+                {% if messages|length == 20 %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page + 1 }}">التالي</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+            <p class="text-muted mt-3">لا توجد رسائل</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

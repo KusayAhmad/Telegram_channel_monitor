@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}القنوات{% endblock %}
+
+{% block content %}
+<h2 class="page-title"><i class="bi bi-broadcast"></i> إدارة القنوات</h2>
+
+<!-- Add Channel Form -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-plus-circle"></i> إضافة قناة جديدة
+    </div>
+    <div class="card-body">
+        <form id="addChannelForm" class="row g-3">
+            <div class="col-md-4">
+                <input type="text" class="form-control" id="channelUsername" 
+                       placeholder="@username" required>
+            </div>
+            <div class="col-md-4">
+                <input type="text" class="form-control" id="channelTitle" 
+                       placeholder="اسم القناة (اختياري)">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-telegram w-100">
+                    <i class="bi bi-plus"></i> إضافة
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Channels List -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list"></i> القنوات المُراقبة ({{ channels|length }})</span>
+    </div>
+    <div class="card-body">
+        {% if channels %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>القناة</th>
+                        <th>العنوان</th>
+                        <th>الحالة</th>
+                        <th>تاريخ الإضافة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for channel in channels %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <a href="https://t.me/{{ channel.username }}" target="_blank" 
+                               class="text-info text-decoration-none">
+                                @{{ channel.username or channel.channel_id }}
+                            </a>
+                        </td>
+                        <td>{{ channel.title or '-' }}</td>
+                        <td>
+                            {% if channel.is_active %}
+                            <span class="badge badge-active">نشط</span>
+                            {% else %}
+                            <span class="badge badge-inactive">معطّل</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ channel.created_at }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-warning toggle-channel" 
+                                    data-id="{{ channel.channel_id }}" 
+                                    data-active="{{ channel.is_active }}">
+                                {% if channel.is_active %}
+                                <i class="bi bi-pause"></i>
+                                {% else %}
+                                <i class="bi bi-play"></i>
+                                {% endif %}
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-channel" 
+                                    data-id="{{ channel.channel_id }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+            <p class="text-muted mt-3">لا توجد قنوات مضافة</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // إضافة قناة
+    document.getElementById('addChannelForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const username = document.getElementById('channelUsername').value.replace('@', '');
+        const title = document.getElementById('channelTitle').value;
+        
+        const response = await fetch('/api/channels', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                channel_id: username,
+                username: username,
+                title: title
+            })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('فشل في إضافة القناة');
+        }
+    });
+    
+    // تفعيل/تعطيل قناة
+    document.querySelectorAll('.toggle-channel').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const channelId = btn.dataset.id;
+            const isActive = btn.dataset.active === '1';
+            
+            await fetch(`/api/channels/${channelId}/toggle`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_active: !isActive })
+            });
+            
+            location.reload();
+        });
+    });
+    
+    // حذف قناة
+    document.querySelectorAll('.delete-channel').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (!confirm('هل أنت متأكد من حذف هذه القناة؟')) return;
+            
+            const channelId = btn.dataset.id;
+            await fetch(`/api/channels?channel_id=${channelId}`, { method: 'DELETE' });
+            location.reload();
+        });
+    });
+</script>
+{% endblock %}
