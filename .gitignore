@@ -41,7 +41,7 @@ env/
 # قاعدة البيانات
 *.db
 *.sqlite3
-
+data/
 # Logs
 logs/
 *.log
