@@ -105,48 +105,48 @@ class MonitorBot:
         """Start command"""
         keyboard = InlineKeyboardMarkup([
             [
-                InlineKeyboardButton("📢 القنوات", callback_data="menu_channels"),
-                InlineKeyboardButton("🔑 الكلمات", callback_data="menu_keywords")
+                InlineKeyboardButton("📢 Channels", callback_data="menu_channels"),
+                InlineKeyboardButton("🔑 Keywords", callback_data="menu_keywords")
             ],
             [
-                InlineKeyboardButton("📊 الإحصائيات", callback_data="menu_stats"),
-                InlineKeyboardButton("📋 آخر الرسائل", callback_data="menu_recent")
+                InlineKeyboardButton("📊 Statistics", callback_data="menu_stats"),
+                InlineKeyboardButton("📋 Recent Messages", callback_data="menu_recent")
             ],
             [
-                InlineKeyboardButton("ℹ️ المساعدة", callback_data="menu_help")
+                InlineKeyboardButton("ℹ️ Help", callback_data="menu_help")
             ]
         ])
         
         await message.reply(
-            "🤖 **مرحباً بك في بوت مراقبة القنوات!**\n\n"
-            "استخدم الأزرار أدناه أو اكتب /help لرؤية الأوامر المتاحة.",
+            "🤖 **Welcome to Channel Monitor Bot!**\n\n"
+            "Use the buttons below or type /help to see available commands.",
             reply_markup=keyboard
         )
     
     async def _cmd_help(self, client: Client, message: Message):
         """Help command"""
         help_text = """
-📚 **قائمة الأوامر المتاحة:**
+📚 **Available Commands:**
 
-**الأوامر الأساسية:**
-• /start - القائمة الرئيسية
-• /help - عرض المساعدة
-• /status - حالة النظام
+**Basic Commands:**
+• /start - Main menu
+• /help - Show help
+• /status - System status
 
-**إدارة القنوات:**
-• /channels - عرض القنوات المُراقبة
-• /addchannel @username - إضافة قناة
-• /removechannel @username - حذف قناة
+**Channel Management:**
+• /channels - Show monitored channels
+• /addchannel @username - Add channel
+• /removechannel @username - Remove channel
 
-**إدارة الكلمات المفتاحية:**
-• /keywords - عرض الكلمات
-• /addkeyword كلمة - إضافة كلمة
-• /removekeyword كلمة - حذف كلمة
+**Keyword Management:**
+• /keywords - Show keywords
+• /addkeyword word - Add keyword
+• /removekeyword word - Remove keyword
 
-**الإحصائيات:**
-• /stats - إحصائيات عامة
-• /recent - آخر الرسائل المكتشفة
-• /export - تصدير البيانات
+**Statistics:**
+• /stats - General statistics
+• /recent - Recently detected messages
+• /export - Export data
 """
         await message.reply(help_text)
     
@@ -157,13 +157,13 @@ class MonitorBot:
         stats = await db.get_stats(days=1)
         
         status_text = f"""
-📊 **حالة النظام:**
+📊 **System Status:**
 
-🟢 **الحالة:** يعمل
-📢 **القنوات المُراقبة:** {len(channels)}
-🔑 **الكلمات المفتاحية:** {len(keywords)}
-📨 **رسائل اليوم:** {stats['today_messages']}
-📈 **إجمالي الرسائل:** {stats['total_messages']}
+🟢 **Status:** Running
+📢 **Monitored Channels:** {len(channels)}
+🔑 **Keywords:** {len(keywords)}
+📨 **Today's Messages:** {stats['today_messages']}
+📈 **Total Messages:** {stats['total_messages']}
 """
         await message.reply(status_text)
     
@@ -174,16 +174,16 @@ class MonitorBot:
         channels = await db.get_channels()
         
         if not channels:
-            await message.reply("📢 لا توجد قنوات مُراقبة حالياً.\n\nاستخدم /addchannel @username لإضافة قناة.")
+            await message.reply("📢 No channels are currently being monitored.\n\nUse /addchannel @username to add a channel.")
             return
         
-        text = "📢 **القنوات المُراقبة:**\n\n"
+        text = "📢 **Monitored Channels:**\n\n"
         for i, ch in enumerate(channels, 1):
             status = "🟢" if ch['is_active'] else "🔴"
             text += f"{i}. {status} @{ch['username'] or ch['channel_id']}\n"
         
         keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("➕ إضافة قناة", callback_data="add_channel")]
+            [InlineKeyboardButton("➕ Add Channel", callback_data="add_channel")]
         ])
         
         await message.reply(text, reply_markup=keyboard)
@@ -193,7 +193,7 @@ class MonitorBot:
         args = message.text.split(maxsplit=1)
         
         if len(args) < 2:
-            await message.reply("⚠️ **الاستخدام:** /addchannel @username\n\nمثال: `/addchannel @TechNews`")
+            await message.reply("⚠️ **Usage:** /addchannel @username\n\nExample: `/addchannel @TechNews`")
             return
         
         channel = args[1].strip().lstrip('@')
@@ -208,21 +208,21 @@ class MonitorBot:
             )
             
             await message.reply(
-                f"✅ تمت إضافة القناة بنجاح!\n\n"
-                f"📢 **القناة:** @{chat.username}\n"
-                f"📝 **الاسم:** {chat.title}"
+                f"✅ Channel added successfully!\n\n"
+                f"📢 **Channel:** @{chat.username}\n"
+                f"📝 **Name:** {chat.title}"
             )
             monitor_logger.info(f"Channel added: @{channel}")
             
         except Exception as e:
-            await message.reply(f"❌ فشل في إضافة القناة: {str(e)}")
+            await message.reply(f"❌ Failed to add channel: {str(e)}")
     
     async def _cmd_remove_channel(self, client: Client, message: Message):
         """Remove a channel"""
         args = message.text.split(maxsplit=1)
         
         if len(args) < 2:
-            await message.reply("⚠️ **الاستخدام:** /removechannel @username")
+            await message.reply("⚠️ **Usage:** /removechannel @username")
             return
         
         channel = args[1].strip().lstrip('@')
@@ -237,10 +237,10 @@ class MonitorBot:
         
         if found:
             await db.remove_channel(found['channel_id'])
-            await message.reply(f"✅ تم حذف القناة @{channel} بنجاح!")
+            await message.reply(f"✅ Channel @{channel} removed successfully!")
             monitor_logger.info(f"Channel removed: @{channel}")
         else:
-            await message.reply(f"❌ لم يتم العثور على القناة @{channel}")
+            await message.reply(f"❌ Channel @{channel} not found")
     
     # ================== Keyword Management ==================
     
@@ -249,17 +249,17 @@ class MonitorBot:
         keywords = await db.get_keywords()
         
         if not keywords:
-            await message.reply("🔑 لا توجد كلمات مفتاحية.\n\nاستخدم /addkeyword كلمة لإضافة كلمة.")
+            await message.reply("🔑 No keywords found.\n\nUse /addkeyword word to add a keyword.")
             return
         
-        text = "🔑 **الكلمات المفتاحية:**\n\n"
+        text = "🔑 **Keywords:**\n\n"
         for i, kw in enumerate(keywords, 1):
             status = "🟢" if kw['is_active'] else "🔴"
             regex_tag = " (regex)" if kw['is_regex'] else ""
             text += f"{i}. {status} `{kw['keyword']}`{regex_tag}\n"
         
         keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("➕ إضافة كلمة", callback_data="add_keyword")]
+            [InlineKeyboardButton("➕ Add Keyword", callback_data="add_keyword")]
         ])
         
         await message.reply(text, reply_markup=keyboard)
@@ -270,9 +270,9 @@ class MonitorBot:
         
         if len(args) < 2:
             await message.reply(
-                "⚠️ **الاستخدام:** /addkeyword كلمة\n\n"
-                "لإضافة regex استخدم:\n"
-                "/addkeyword regex:نمط_البحث"
+                "⚠️ **Usage:** /addkeyword word\n\n"
+                "To add regex use:\n"
+                "/addkeyword regex:search_pattern"
             )
             return
         
@@ -285,9 +285,9 @@ class MonitorBot:
         await db.add_keyword(keyword, is_regex)
         
         await message.reply(
-            f"✅ تمت إضافة الكلمة بنجاح!\n\n"
-            f"🔑 **الكلمة:** `{keyword}`\n"
-            f"🔤 **النوع:** {'Regex' if is_regex else 'عادية'}"
+            f"✅ Keyword added successfully!\n\n"
+            f"🔑 **Keyword:** `{keyword}`\n"
+            f"🔤 **Type:** {'Regex' if is_regex else 'Normal'}"
         )
         monitor_logger.info(f"Keyword added: {keyword}")
     
@@ -296,7 +296,7 @@ class MonitorBot:
         args = message.text.split(maxsplit=1)
         
         if len(args) < 2:
-            await message.reply("⚠️ **الاستخدام:** /removekeyword كلمة")
+            await message.reply("⚠️ **Usage:** /removekeyword word")
             return
         
         keyword = args[1].strip()
@@ -310,10 +310,10 @@ class MonitorBot:
         
         if found:
             await db.remove_keyword(found['id'])
-            await message.reply(f"✅ تم حذف الكلمة `{keyword}` بنجاح!")
+            await message.reply(f"✅ Keyword `{keyword}` removed successfully!")
             monitor_logger.info(f"Keyword removed: {keyword}")
         else:
-            await message.reply(f"❌ لم يتم العثور على الكلمة `{keyword}`")
+            await message.reply(f"❌ Keyword `{keyword}` not found")
     
     # ================== Statistics ==================
     
@@ -322,19 +322,19 @@ class MonitorBot:
         stats = await db.get_stats(days=7)
         
         text = f"""
-📊 **إحصائيات المراقبة:**
+📊 **Monitoring Statistics:**
 
-📈 **إجمالي الرسائل:** {stats['total_messages']}
-📅 **رسائل اليوم:** {stats['today_messages']}
+📈 **Total Messages:** {stats['total_messages']}
+📅 **Today's Messages:** {stats['today_messages']}
 
-🏆 **أكثر الكلمات تطابقاً:**
+🏆 **Most Matched Keywords:**
 """
         for i, kw in enumerate(stats['top_keywords'][:5], 1):
-            text += f"  {i}. `{kw['keyword_matched']}` - {kw['count']} مرة\n"
+            text += f"  {i}. `{kw['keyword_matched']}` - {kw['count']} times\n"
         
-        text += "\n📢 **أكثر القنوات نشاطاً:**\n"
+        text += "\n📢 **Most Active Channels:**\n"
         for i, ch in enumerate(stats['top_channels'][:5], 1):
-            text += f"  {i}. @{ch['channel_username']} - {ch['count']} رسالة\n"
+            text += f"  {i}. @{ch['channel_username']} - {ch['count']} messages\n"
         
         await message.reply(text)
     
@@ -343,18 +343,18 @@ class MonitorBot:
         messages = await db.get_detected_messages(limit=10)
         
         if not messages:
-            await message.reply("📭 لا توجد رسائل مكتشفة بعد.")
+            await message.reply("📭 No messages detected yet.")
             return
         
-        text = "📋 **آخر الرسائل المكتشفة:**\n\n"
+        text = "📋 **Recently Detected Messages:**\n\n"
         
         for msg in messages:
-            text += f"🔹 **القناة:** @{msg['channel_username']}\n"
-            text += f"   **الكلمة:** `{msg['keyword_matched']}`\n"
-            text += f"   **الوقت:** {msg['detected_at']}\n"
+            text += f"🔹 **Channel:** @{msg['channel_username']}\n"
+            text += f"   **Keyword:** `{msg['keyword_matched']}`\n"
+            text += f"   **Time:** {msg['detected_at']}\n"
             preview = (msg['message_text'] or "")[:100]
             if preview:
-                text += f"   **المحتوى:** {preview}...\n"
+                text += f"   **Content:** {preview}...\n"
             text += "\n"
         
         await message.reply(text)
@@ -373,7 +373,7 @@ class MonitorBot:
         ])
         
         await message.reply(
-            "📤 **اختر صيغة التصدير:**",
+            "📤 **Choose export format:**",
             reply_markup=keyboard
         )
     
@@ -404,7 +404,7 @@ class MonitorBot:
         """Execute export"""
         from exporter import DataExporter
         
-        await callback.message.edit_text("⏳ جاري التصدير...")
+        await callback.message.edit_text("⏳ Exporting...")
         
         exporter = DataExporter()
         messages = await db.get_detected_messages(limit=10000)
@@ -418,33 +418,33 @@ class MonitorBot:
             await client.send_document(
                 callback.message.chat.id,
                 document=str(file_path),
-                caption=f"📤 تم تصدير {len(messages)} رسالة"
+                caption=f"📤 Exported {len(messages)} messages"
             )
         else:
-            await callback.message.edit_text("❌ فشل في التصدير")
+            await callback.message.edit_text("❌ Export failed")
     
     # ================== System Control ==================
     
     async def _cmd_reload(self, client: Client, message: Message):
         """Reload configuration"""
         if not self.monitor_instance:
-            await message.reply("❌ لا يمكن إعادة التحميل - النظام غير متصل")
+            await message.reply("❌ Cannot reload - system not connected")
             return
         
         try:
-            await message.reply("⏳ جاري إعادة تحميل الإعدادات...")
+            await message.reply("⏳ Reloading configuration...")
             await self.monitor_instance.reload_config()
             
             channels_count = len(self.monitor_instance.monitored_channels)
             keywords_count = len(self.monitor_instance.search_engine.patterns)
             
             await message.reply(
-                f"✅ تم إعادة التحميل بنجاح!\n\n"
-                f"📢 القنوات النشطة: {channels_count}\n"
-                f"🔑 الكلمات المفتاحية: {keywords_count}"
+                f"✅ Configuration reloaded successfully!\n\n"
+                f"📢 Active Channels: {channels_count}\n"
+                f"🔑 Keywords: {keywords_count}"
             )
         except Exception as e:
-            await message.reply(f"❌ خطأ في إعادة التحميل: {str(e)}")
+            await message.reply(f"❌ Reload error: {str(e)}")
 
 
 # Helper function to create the bot

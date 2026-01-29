@@ -201,8 +201,8 @@ class AdvancedPatterns:
     AMAZON_LINK = r'amazon\.[a-z.]+/[^\s]+'
     
     # Discount patterns
-    DISCOUNT_PERCENT = r'\d+%\s*(off|خصم|discount)?'
-    DISCOUNT_CODE = r'(code|كود|coupon)[\s:]*[A-Z0-9]+'
+    DISCOUNT_PERCENT = r'\d+%\s*(off|discount)?'
+    DISCOUNT_CODE = r'(code|coupon)[\s:]*[A-Z0-9]+'
     
     # Date patterns
     DATE_DMY = r'\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4}'

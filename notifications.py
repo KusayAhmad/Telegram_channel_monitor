@@ -294,7 +294,7 @@ class NotificationManager:
     ):
         """Notify when keyword is found"""
         notification = NotificationMessage(
-            title="تم العثور على كلمة مفتاحية!",
+            title="Keyword Found!",
             body=message_text[:1000] if message_text else "",
             keyword=keyword,
             channel=channel,

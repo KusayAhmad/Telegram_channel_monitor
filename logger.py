@@ -1,6 +1,6 @@
 """
-نظام التسجيل (Logging) للمشروع
-يوفر تسجيل ملون للـ console وتسجيل للملفات
+Logging system for the project
+Provides colored console logging and file logging
 """
 import logging
 import sys

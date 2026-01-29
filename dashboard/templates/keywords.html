@@ -1,35 +1,35 @@
 {% extends "base.html" %}
 
-{% block title %}الكلمات المفتاحية{% endblock %}
+{% block title %}Keywords{% endblock %}
 
 {% block content %}
-<h2 class="page-title"><i class="bi bi-key"></i> إدارة الكلمات المفتاحية</h2>
+<h2 class="page-title"><i class="bi bi-key"></i> Keyword Management</h2>
 
 <!-- Add Keyword Form -->
 <div class="card mb-4">
     <div class="card-header">
-        <i class="bi bi-plus-circle"></i> إضافة كلمة مفتاحية
+        <i class="bi bi-plus-circle"></i> Add Keyword
     </div>
     <div class="card-body">
         <form id="addKeywordForm" class="row g-3">
             <div class="col-md-5">
                 <input type="text" class="form-control" id="keywordText" 
-                       placeholder="الكلمة المفتاحية" required>
+                       placeholder="Keyword" required>
             </div>
             <div class="col-md-3">
                 <div class="form-check form-switch mt-2">
                     <input class="form-check-input" type="checkbox" id="isRegex">
-                    <label class="form-check-label" for="isRegex">تعبير نمطي (Regex)</label>
+                    <label class="form-check-label" for="isRegex">Regular Expression (Regex)</label>
                 </div>
             </div>
             <div class="col-md-4">
                 <button type="submit" class="btn btn-warning w-100">
-                    <i class="bi bi-plus"></i> إضافة
+                    <i class="bi bi-plus"></i> Add
                 </button>
             </div>
         </form>
         <small class="text-muted mt-2 d-block">
-            💡 للبحث العادي، اكتب الكلمة مباشرة. للبحث المتقدم، فعّل خيار Regex
+            💡 For normal search, type the word directly. For advanced search, enable Regex option
         </small>
     </div>
 </div>
@@ -37,7 +37,7 @@
 <!-- Keywords List -->
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-list"></i> الكلمات المفتاحية ({{ keywords|length }})</span>
+        <span><i class="bi bi-list"></i> Keywords ({{ keywords|length }})</span>
     </div>
     <div class="card-body">
         {% if keywords %}
@@ -46,11 +46,11 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>الكلمة</th>
-                        <th>النوع</th>
-                        <th>الحالة</th>
-                        <th>تاريخ الإضافة</th>
-                        <th>الإجراءات</th>
+                        <th>Keyword</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Date Added</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -62,14 +62,14 @@
                             {% if keyword.is_regex %}
                             <span class="badge bg-info">Regex</span>
                             {% else %}
-                            <span class="badge bg-secondary">عادية</span>
+                            <span class="badge bg-secondary">Normal</span>
                             {% endif %}
                         </td>
                         <td>
                             {% if keyword.is_active %}
-                            <span class="badge badge-active">نشطة</span>
+                            <span class="badge badge-active">Active</span>
                             {% else %}
-                            <span class="badge badge-inactive">معطّلة</span>
+                            <span class="badge badge-inactive">Disabled</span>
                             {% endif %}
                         </td>
                         <td>{{ keyword.created_at }}</td>
@@ -96,7 +96,7 @@
         {% else %}
         <div class="text-center py-5">
             <i class="bi bi-key text-muted" style="font-size: 4rem;"></i>
-            <p class="text-muted mt-3">لا توجد كلمات مفتاحية</p>
+            <p class="text-muted mt-3">No keywords added</p>
         </div>
         {% endif %}
     </div>
@@ -105,27 +105,27 @@
 <!-- Regex Help -->
 <div class="card mt-4">
     <div class="card-header">
-        <i class="bi bi-question-circle"></i> مساعدة Regex
+        <i class="bi bi-question-circle"></i> Regex Help
     </div>
     <div class="card-body">
         <div class="row">
             <div class="col-md-6">
-                <h6>أنماط شائعة:</h6>
+                <h6>Common Patterns:</h6>
                 <ul class="list-unstyled">
-                    <li><code>\d+%</code> - نسبة مئوية (مثل 50%)</li>
-                    <li><code>\$\d+</code> - سعر بالدولار</li>
-                    <li><code>https?://\S+</code> - روابط</li>
-                    <li><code>code:\w+</code> - أكواد خصم</li>
+                    <li><code>\d+%</code> - Percentage (e.g., 50%)</li>
+                    <li><code>\$\d+</code> - Dollar price</li>
+                    <li><code>https?://\S+</code> - URLs</li>
+                    <li><code>code:\w+</code> - Discount codes</li>
                 </ul>
             </div>
             <div class="col-md-6">
-                <h6>رموز أساسية:</h6>
+                <h6>Basic Symbols:</h6>
                 <ul class="list-unstyled">
-                    <li><code>.</code> - أي حرف</li>
-                    <li><code>*</code> - تكرار صفر أو أكثر</li>
-                    <li><code>+</code> - تكرار واحد أو أكثر</li>
-                    <li><code>\d</code> - رقم</li>
-                    <li><code>\w</code> - حرف أو رقم</li>
+                    <li><code>.</code> - Any character</li>
+                    <li><code>*</code> - Zero or more repetitions</li>
+                    <li><code>+</code> - One or more repetitions</li>
+                    <li><code>\d</code> - Digit</li>
+                    <li><code>\w</code> - Letter or digit</li>
                 </ul>
             </div>
         </div>
@@ -135,7 +135,7 @@
 
 {% block extra_js %}
 <script>
-    // إضافة كلمة
+    // Add keyword
     document.getElementById('addKeywordForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -152,11 +152,11 @@
         if (data.success) {
             location.reload();
         } else {
-            alert('فشل في إضافة الكلمة');
+            alert('Failed to add keyword');
         }
     });
     
-    // تفعيل/تعطيل كلمة
+    // Toggle keyword
     document.querySelectorAll('.toggle-keyword').forEach(btn => {
         btn.addEventListener('click', async () => {
             const keywordId = btn.dataset.id;
@@ -172,10 +172,10 @@
         });
     });
     
-    // حذف كلمة
+    // Delete keyword
     document.querySelectorAll('.delete-keyword').forEach(btn => {
         btn.addEventListener('click', async () => {
-            if (!confirm('هل أنت متأكد من حذف هذه الكلمة؟')) return;
+            if (!confirm('Are you sure you want to delete this keyword?')) return;
             
             const keywordId = btn.dataset.id;
             await fetch(`/api/keywords?id=${keywordId}`, { method: 'DELETE' });

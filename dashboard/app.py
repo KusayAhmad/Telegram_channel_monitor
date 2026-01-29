@@ -88,7 +88,7 @@ def login():
         if password == config.DASHBOARD_SECRET_KEY:
             login_user(ADMIN_USER)
             return redirect(url_for('index'))
-        flash('كلمة المرور غير صحيحة', 'error')
+        flash('Incorrect password', 'error')
     return render_template('login.html')
 
 
@@ -290,11 +290,11 @@ async def api_export(format):
     elif format == 'json':
         filepath = await exporter.export_to_json(messages)
     else:
-        return jsonify({'error': 'صيغة غير مدعومة'}), 400
+        return jsonify({'error': 'Unsupported format'}), 400
     
     if filepath:
         return jsonify({'success': True, 'file': str(filepath)})
-    return jsonify({'error': 'فشل التصدير'}), 500
+    return jsonify({'error': 'Export failed'}), 500
 
 
 def run_dashboard():

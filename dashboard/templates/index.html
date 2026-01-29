@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}الرئيسية{% endblock %}
+{% block title %}Home{% endblock %}
 
 {% block content %}
-<h2 class="page-title"><i class="bi bi-speedometer2"></i> لوحة التحكم</h2>
+<h2 class="page-title"><i class="bi bi-speedometer2"></i> Dashboard</h2>
 
 <!-- Stats Cards -->
 <div class="row">
@@ -11,28 +11,28 @@
         <div class="card stat-card">
             <i class="bi bi-chat-dots text-primary"></i>
             <div class="stat-number">{{ stats.total_messages }}</div>
-            <div class="stat-label">إجمالي الرسائل</div>
+            <div class="stat-label">Total Messages</div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card stat-card">
             <i class="bi bi-calendar-day text-success"></i>
             <div class="stat-number">{{ stats.today_messages }}</div>
-            <div class="stat-label">رسائل اليوم</div>
+            <div class="stat-label">Today's Messages</div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card stat-card">
             <i class="bi bi-broadcast text-info"></i>
             <div class="stat-number">{{ channels|length }}</div>
-            <div class="stat-label">القنوات المُراقبة</div>
+            <div class="stat-label">Monitored Channels</div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card stat-card">
             <i class="bi bi-key text-warning"></i>
             <div class="stat-number">{{ keywords|length }}</div>
-            <div class="stat-label">الكلمات المفتاحية</div>
+            <div class="stat-label">Keywords</div>
         </div>
     </div>
 </div>
@@ -42,7 +42,7 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <i class="bi bi-clock-history"></i> آخر الرسائل المكتشفة
+                <i class="bi bi-clock-history"></i> Recent Detected Messages
             </div>
             <div class="card-body">
                 {% if recent %}
@@ -50,9 +50,9 @@
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>القناة</th>
-                                <th>الكلمة</th>
-                                <th>الوقت</th>
+                                <th>Channel</th>
+                                <th>Keyword</th>
+                                <th>Time</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -67,10 +67,10 @@
                     </table>
                 </div>
                 {% else %}
-                <p class="text-muted text-center">لا توجد رسائل بعد</p>
+                <p class="text-muted text-center">No messages yet</p>
                 {% endif %}
                 <a href="{{ url_for('messages') }}" class="btn btn-outline-primary btn-sm">
-                    عرض الكل <i class="bi bi-arrow-left"></i>
+                    View All <i class="bi bi-arrow-right"></i>
                 </a>
             </div>
         </div>
@@ -80,7 +80,7 @@
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
-                <i class="bi bi-trophy"></i> أكثر الكلمات تطابقاً
+                <i class="bi bi-trophy"></i> Top Matching Keywords
             </div>
             <div class="card-body">
                 {% if stats.top_keywords %}
@@ -94,7 +94,7 @@
                     {% endfor %}
                 </ul>
                 {% else %}
-                <p class="text-muted text-center">لا توجد بيانات</p>
+                <p class="text-muted text-center">No data available</p>
                 {% endif %}
             </div>
         </div>
@@ -102,18 +102,18 @@
         <!-- Quick Actions -->
         <div class="card mt-3">
             <div class="card-header">
-                <i class="bi bi-lightning"></i> إجراءات سريعة
+                <i class="bi bi-lightning"></i> Quick Actions
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
                     <a href="{{ url_for('channels') }}" class="btn btn-outline-info">
-                        <i class="bi bi-plus-circle"></i> إضافة قناة
+                        <i class="bi bi-plus-circle"></i> Add Channel
                     </a>
                     <a href="{{ url_for('keywords') }}" class="btn btn-outline-warning">
-                        <i class="bi bi-plus-circle"></i> إضافة كلمة
+                        <i class="bi bi-plus-circle"></i> Add Keyword
                     </a>
                     <a href="/api/export/csv" class="btn btn-outline-success">
-                        <i class="bi bi-download"></i> تصدير CSV
+                        <i class="bi bi-download"></i> Export CSV
                     </a>
                 </div>
             </div>
@@ -126,7 +126,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <i class="bi bi-graph-up"></i> الرسائل المكتشفة (آخر 7 أيام)
+                <i class="bi bi-graph-up"></i> Detected Messages (Last 7 Days)
             </div>
             <div class="card-body">
                 <canvas id="messagesChart" class="chart-container"></canvas>
@@ -148,7 +148,7 @@
         data: {
             labels: labels,
             datasets: [{
-                label: 'الرسائل المكتشفة',
+                label: 'Detected Messages',
                 data: data,
                 borderColor: '#0088cc',
                 backgroundColor: 'rgba(0, 136, 204, 0.1)',

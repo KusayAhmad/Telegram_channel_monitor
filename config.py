@@ -1,6 +1,6 @@
 """
-إعدادات المشروع المركزية
-يقرأ الإعدادات من ملف .env ويوفرها لباقي الملفات
+Central project settings
+Reads settings from .env file and provides them to other files
 """
 import os
 from pathlib import Path

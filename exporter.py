@@ -1,6 +1,6 @@
 """
-نظام تصدير البيانات
-يدعم تصدير CSV و JSON
+Data export system
+Supports CSV and JSON export
 """
 import json
 import csv
@@ -107,27 +107,27 @@ class DataExporter:
         try:
             report = f"""
 ╔══════════════════════════════════════════════════════════════╗
-║              تقرير إحصائيات مراقبة القنوات                  ║
+║           Channel Monitoring Statistics Report               ║
 ║              {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}                         ║
 ╠══════════════════════════════════════════════════════════════╣
 ║                                                              ║
-║  📊 الإحصائيات العامة:                                      ║
+║  📊 General Statistics:                                      ║
 ║  ━━━━━━━━━━━━━━━━━━━━                                        ║
-║  • إجمالي الرسائل المكتشفة: {stats['total_messages']:>10}                 ║
-║  • رسائل اليوم: {stats['today_messages']:>10}                              ║
+║  • Total Detected Messages: {stats['total_messages']:>10}                 ║
+║  • Today's Messages: {stats['today_messages']:>10}                              ║
 ║                                                              ║
-║  🏆 أكثر الكلمات تطابقاً:                                   ║
+║  🏆 Top Matching Keywords:                                   ║
 ║  ━━━━━━━━━━━━━━━━━━━━━━━                                      ║
 """
             for i, kw in enumerate(stats.get('top_keywords', [])[:10], 1):
-                report += f"║  {i:>2}. {kw['keyword_matched']:<20} - {kw['count']:>5} مرة     ║\n"
+                report += f"║  {i:>2}. {kw['keyword_matched']:<20} - {kw['count']:>5} times    ║\n"
             
             report += """║                                                              ║
-║  📢 أكثر القنوات نشاطاً:                                    ║
+║  📢 Most Active Channels:                                    ║
 ║  ━━━━━━━━━━━━━━━━━━━━━━                                       ║
 """
             for i, ch in enumerate(stats.get('top_channels', [])[:10], 1):
-                report += f"║  {i:>2}. @{ch['channel_username']:<18} - {ch['count']:>5} رسالة   ║\n"
+                report += f"║  {i:>2}. @{ch['channel_username']:<18} - {ch['count']:>5} messages║\n"
             
             report += """║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
@@ -144,7 +144,7 @@ class DataExporter:
             return None
 
 
-# Pandas Export (اختياري - للتصدير المتقدم)
+# Pandas Export (optional - for advanced export)
 try:
     import pandas as pd
     HAS_PANDAS = True

@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}الإحصائيات{% endblock %}
+{% block title %}Statistics{% endblock %}
 
 {% block content %}
-<h2 class="page-title"><i class="bi bi-graph-up"></i> الإحصائيات</h2>
+<h2 class="page-title"><i class="bi bi-graph-up"></i> Statistics</h2>
 
 <!-- Overview Stats -->
 <div class="row">
@@ -11,21 +11,21 @@
         <div class="card stat-card">
             <i class="bi bi-chat-dots text-primary"></i>
             <div class="stat-number">{{ stats.total_messages }}</div>
-            <div class="stat-label">إجمالي الرسائل</div>
+            <div class="stat-label">Total Messages</div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card stat-card">
             <i class="bi bi-calendar-day text-success"></i>
             <div class="stat-number">{{ stats.today_messages }}</div>
-            <div class="stat-label">رسائل اليوم</div>
+            <div class="stat-label">Today's Messages</div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card stat-card">
             <i class="bi bi-calendar-week text-warning"></i>
             <div class="stat-number">{{ stats.daily_counts | sum(attribute='count') }}</div>
-            <div class="stat-label">آخر 30 يوم</div>
+            <div class="stat-label">Last 30 Days</div>
         </div>
     </div>
 </div>
@@ -35,7 +35,7 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <i class="bi bi-bar-chart"></i> الرسائل اليومية
+                <i class="bi bi-bar-chart"></i> Daily Messages
             </div>
             <div class="card-body">
                 <canvas id="dailyChart" height="300"></canvas>
@@ -47,7 +47,7 @@
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
-                <i class="bi bi-pie-chart"></i> توزيع الكلمات
+                <i class="bi bi-pie-chart"></i> Keyword Distribution
             </div>
             <div class="card-body">
                 <canvas id="keywordsChart" height="300"></canvas>
@@ -61,7 +61,7 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                <i class="bi bi-trophy"></i> أكثر الكلمات تطابقاً
+                <i class="bi bi-trophy"></i> Top Matching Keywords
             </div>
             <div class="card-body">
                 {% if stats.top_keywords %}
@@ -70,9 +70,9 @@
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>الكلمة</th>
-                                <th>العدد</th>
-                                <th>النسبة</th>
+                                <th>Keyword</th>
+                                <th>Count</th>
+                                <th>Percentage</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -96,7 +96,7 @@
                     </table>
                 </div>
                 {% else %}
-                <p class="text-muted text-center">لا توجد بيانات</p>
+                <p class="text-muted text-center">No data available</p>
                 {% endif %}
             </div>
         </div>
@@ -106,7 +106,7 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                <i class="bi bi-broadcast"></i> أكثر القنوات نشاطاً
+                <i class="bi bi-broadcast"></i> Most Active Channels
             </div>
             <div class="card-body">
                 {% if stats.top_channels %}
@@ -115,9 +115,9 @@
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>القناة</th>
-                                <th>العدد</th>
-                                <th>النسبة</th>
+                                <th>Channel</th>
+                                <th>Count</th>
+                                <th>Percentage</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -146,7 +146,7 @@
                     </table>
                 </div>
                 {% else %}
-                <p class="text-muted text-center">لا توجد بيانات</p>
+                <p class="text-muted text-center">No data available</p>
                 {% endif %}
             </div>
         </div>
@@ -165,7 +165,7 @@
         data: {
             labels: dailyCounts.map(d => d.date).reverse(),
             datasets: [{
-                label: 'الرسائل',
+                label: 'Messages',
                 data: dailyCounts.map(d => d.count).reverse(),
                 backgroundColor: 'rgba(0, 136, 204, 0.7)',
                 borderColor: '#0088cc',

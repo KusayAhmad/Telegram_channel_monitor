@@ -1,15 +1,15 @@
 from pyrogram import Client, filters
 
-# معلومات حساب Telegram API الخاصة بك
-api_id = 24327631      # ← استبدل هذا بـ API ID من my.telegram.org
-api_hash = "9336fcbafd7ad01f90942a554343504c"  # ← استبدله بـ API Hash
+# Your Telegram API account information
+api_id = 24327631      # ← Replace this with API ID from my.telegram.org
+api_hash = "9336fcbafd7ad01f90942a554343504c"  # ← Replace with API Hash
 
-# إعدادات المراقبة
-keywords = ["Only Order", "Only Buy", "Only rating",]  # ← الكلمات التي تريد البحث عنها
-channels_to_monitor = ["@Ninja_Tester", "@CollectManiaa","@AmzGoldenDeals","@kingi_amz","@leepremiumde"]  # ← القنوات التي تريد مراقبتها
-notify_user_id = 1641576293  # ← معرّفك الشخصي في تيليغرام (استخدم @userinfobot للحصول عليه)
+# Monitoring settings
+keywords = ["Only Order", "Only Buy", "Only rating",]  # ← Keywords you want to search for
+channels_to_monitor = ["@Ninja_Tester", "@CollectManiaa","@AmzGoldenDeals","@kingi_amz","@leepremiumde"]  # ← Channels you want to monitor
+notify_user_id = 1641576293  # ← Your personal ID on Telegram (use @userinfobot to get it)
 
-# تهيئة الجلسة
+# Session setup
 app = Client("my_account", api_id=api_id, api_hash=api_hash)
 
 @app.on_message(filters.chat(channels_to_monitor))

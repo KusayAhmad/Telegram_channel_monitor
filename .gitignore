@@ -1,4 +1,4 @@
-# البيئة والإعدادات الحساسة
+# Environment and sensitive settings
 .env
 *.session
 *.session-journal
@@ -38,7 +38,7 @@ env/
 *.swo
 *~
 
-# قاعدة البيانات
+# Database
 *.db
 *.sqlite3
 data/
@@ -50,5 +50,5 @@ logs/
 .DS_Store
 Thumbs.db
 
-# التصدير
+# Exports
 exports/

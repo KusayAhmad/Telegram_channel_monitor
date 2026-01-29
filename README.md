@@ -1,53 +1,53 @@
 # 📡 Telegram Channel Monitor
 
-نظام متكامل لمراقبة قنوات تيليغرام والبحث عن كلمات مفتاحية محددة مع إشعارات فورية متعددة.
+A comprehensive system for monitoring Telegram channels and searching for specific keywords with instant multi-channel notifications.
 
 ![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)
 ![Pyrogram](https://img.shields.io/badge/Pyrogram-2.0+-green.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-## ✨ المميزات
+## ✨ Features
 
-### 🔍 المراقبة والبحث
-- ✅ مراقبة قنوات متعددة في آن واحد
-- ✅ بحث بالكلمات المفتاحية العادية
-- ✅ دعم التعابير النمطية (Regex) للبحث المتقدم
-- ✅ تجنب تكرار الإشعارات للرسائل المكتشفة
+### 🔍 Monitoring and Search
+- ✅ Monitor multiple channels simultaneously
+- ✅ Search with regular keywords
+- ✅ Regex support for advanced searching
+- ✅ Avoid duplicate notifications for detected messages
 
-### 📢 الإشعارات
-- ✅ إشعارات Telegram فورية
-- ✅ دعم Discord Webhooks
-- ✅ إشعارات البريد الإلكتروني
-- ✅ إمكانية إضافة مزودين جدد
+### 📢 Notifications
+- ✅ Instant Telegram notifications
+- ✅ Discord Webhooks support
+- ✅ Email notifications
+- ✅ Ability to add new providers
 
-### 🤖 بوت التحكم
-- ✅ إدارة القنوات (إضافة/حذف/تفعيل)
-- ✅ إدارة الكلمات المفتاحية
-- ✅ عرض الإحصائيات
-- ✅ تصدير البيانات
+### 🤖 Control Bot
+- ✅ Channel management (add/remove/toggle)
+- ✅ Keyword management
+- ✅ Display statistics
+- ✅ Export data
 
-### 🌐 لوحة تحكم ويب
-- ✅ واجهة عربية أنيقة
-- ✅ إحصائيات ورسوم بيانية
-- ✅ إدارة كاملة عبر المتصفح
-- ✅ تصدير البيانات (CSV/JSON)
+### 🌐 Web Dashboard
+- ✅ Clean and elegant interface
+- ✅ Statistics and charts
+- ✅ Complete management via browser
+- ✅ Export data (CSV/JSON)
 
-### ⚙️ خصائص تقنية
-- ✅ قاعدة بيانات SQLite
-- ✅ نظام تسجيل شامل (Logging)
-- ✅ إعادة تشغيل تلقائي عند الفشل
-- ✅ جدولة المراقبة بأوقات محددة
+### ⚙️ Technical Features
+- ✅ SQLite database
+- ✅ Comprehensive logging system
+- ✅ Auto-restart on failure
+- ✅ Schedule monitoring at specific times
 
-## 🚀 التثبيت
+## 🚀 Installation
 
-### 1. استنساخ المشروع
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/yourusername/channel_monitor.git
 cd channel_monitor
 ```
 
-### 2. إنشاء البيئة الافتراضية
+### 2. Create Virtual Environment
 
 ```bash
 python -m venv venv
@@ -59,142 +59,142 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
-### 3. تثبيت المتطلبات
+### 3. Install Requirements
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. إعداد ملف البيئة
+### 4. Setup Environment File
 
 ```bash
-# نسخ ملف المثال
+# Copy example file
 copy .env.example .env
 
-# تعديل الإعدادات
+# Edit settings
 notepad .env
 ```
 
-### 5. الحصول على بيانات Telegram API
+### 5. Get Telegram API Credentials
 
-1. اذهب إلى [my.telegram.org](https://my.telegram.org)
-2. سجل دخول برقم هاتفك
-3. انقر على "API Development Tools"
-4. أنشئ تطبيق جديد
-5. انسخ `API_ID` و `API_HASH`
+1. Go to [my.telegram.org](https://my.telegram.org)
+2. Login with your phone number
+3. Click on "API Development Tools"
+4. Create a new application
+5. Copy `API_ID` and `API_HASH`
 
-### 6. إنشاء الجلسة
+### 6. Create Session
 
 ```bash
 python main.py session
 ```
 
-## 📖 الاستخدام
+## 📖 Usage
 
-### تشغيل نظام المراقبة
+### Run Monitoring System
 
 ```bash
 python main.py monitor
 ```
 
-### تشغيل لوحة التحكم
+### Run Dashboard
 
 ```bash
 python main.py dashboard
 ```
 
-### تشغيل كلاهما معاً
+### Run Both Together
 
 ```bash
 python main.py both
 ```
 
-### عرض القنوات المشترك بها
+### Display Subscribed Channels
 
 ```bash
 python main.py channels
 ```
 
-### تصدير البيانات
+### Export Data
 
 ```bash
-# تصدير CSV
+# Export CSV
 python main.py export --format csv
 
-# تصدير JSON
+# Export JSON
 python main.py export --format json
 ```
 
-## ⚙️ الإعدادات
+## ⚙️ Configuration
 
-### ملف `.env`
+### `.env` File
 
 ```env
-# Telegram API (مطلوب)
+# Telegram API (required)
 API_ID=123456
 API_HASH=your_api_hash_here
 NOTIFY_USER_ID=your_telegram_id
 
-# البوت (اختياري)
+# Bot (optional)
 BOT_TOKEN=your_bot_token
 
-# Discord (اختياري)
+# Discord (optional)
 DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
 
-# البريد الإلكتروني (اختياري)
+# Email (optional)
 EMAIL_SMTP_SERVER=smtp.gmail.com
 EMAIL_SMTP_PORT=587
 EMAIL_USERNAME=your@email.com
 EMAIL_PASSWORD=your_app_password
 EMAIL_TO=recipient@email.com
 
-# لوحة التحكم
+# Dashboard
 DASHBOARD_SECRET_KEY=your_secret_key
 DASHBOARD_PORT=5000
 ```
 
-## 🤖 أوامر البوت
+## 🤖 Bot Commands
 
-| الأمر | الوصف |
-|-------|-------|
-| `/start` | القائمة الرئيسية |
-| `/help` | عرض المساعدة |
-| `/status` | حالة النظام |
-| `/channels` | عرض القنوات |
-| `/addchannel @username` | إضافة قناة |
-| `/removechannel @username` | حذف قناة |
-| `/keywords` | عرض الكلمات |
-| `/addkeyword كلمة` | إضافة كلمة |
-| `/removekeyword كلمة` | حذف كلمة |
-| `/stats` | الإحصائيات |
-| `/recent` | آخر الرسائل |
-| `/export` | تصدير البيانات |
+| Command | Description |
+|---------|-------------|
+| `/start` | Main menu |
+| `/help` | Show help |
+| `/status` | System status |
+| `/channels` | Display channels |
+| `/addchannel @username` | Add channel |
+| `/removechannel @username` | Remove channel |
+| `/keywords` | Display keywords |
+| `/addkeyword word` | Add keyword |
+| `/removekeyword word` | Remove keyword |
+| `/stats` | Statistics |
+| `/recent` | Recent messages |
+| `/export` | Export data |
 
-### إضافة كلمة Regex
+### Adding Regex Keyword
 
 ```
 /addkeyword regex:\d+%\s*off
 ```
 
-## 📁 هيكل المشروع
+## 📁 Project Structure
 
 ```
 channel_monitor/
-├── main.py              # نقطة الدخول الرئيسية
-├── monitor.py           # نظام المراقبة
-├── config.py            # إدارة الإعدادات
-├── database.py          # قاعدة البيانات
-├── logger.py            # نظام التسجيل
-├── notifications.py     # نظام الإشعارات
-├── search_engine.py     # محرك البحث
-├── scheduler.py         # الجدولة والإعادة التلقائية
-├── bot.py               # بوت التحكم
-├── exporter.py          # تصدير البيانات
-├── requirements.txt     # المتطلبات
-├── .env                 # الإعدادات (لا يُرفع)
-├── .env.example         # مثال الإعدادات
-├── .gitignore           # الملفات المستثناة
-└── dashboard/           # لوحة التحكم
+├── main.py              # Main entry point
+├── monitor.py           # Monitoring system
+├── config.py            # Settings management
+├── database.py          # Database
+├── logger.py            # Logging system
+├── notifications.py     # Notifications system
+├── search_engine.py     # Search engine
+├── scheduler.py         # Scheduling and auto-restart
+├── bot.py               # Control bot
+├── exporter.py          # Data export
+├── requirements.txt     # Requirements
+├── .env                 # Settings (not committed)
+├── .env.example         # Settings example
+├── .gitignore           # Excluded files
+└── dashboard/           # Control panel
     ├── app.py
     └── templates/
         ├── base.html
@@ -205,9 +205,9 @@ channel_monitor/
         └── stats.html
 ```
 
-## 🔧 التطوير
+## 🔧 Development
 
-### إضافة مزود إشعارات جديد
+### Adding a New Notification Provider
 
 ```python
 from notifications import NotificationProvider, NotificationMessage
@@ -219,42 +219,42 @@ class SlackNotifier(NotificationProvider):
         return bool(self.webhook_url)
     
     async def send(self, message: NotificationMessage) -> bool:
-        # تنفيذ الإرسال
+        # Implement sending
         pass
 ```
 
-### إضافة نمط بحث مخصص
+### Adding Custom Search Pattern
 
 ```python
 from search_engine import SearchEngine, MatchType
 
 engine = SearchEngine()
-engine.add_pattern(r'\$\d+\.?\d*', MatchType.REGEX)  # أسعار بالدولار
-engine.add_pattern('خصم', MatchType.CONTAINS)        # كلمة عادية
+engine.add_pattern(r'\$\d+\.?\d*', MatchType.REGEX)  # Dollar prices
+engine.add_pattern('discount', MatchType.CONTAINS)   # Regular word
 ```
 
-## 🛡️ الأمان
+## 🛡️ Security
 
-- ⚠️ لا تشارك ملف `.env` أبداً
-- ⚠️ لا تشارك ملفات `.session`
-- ✅ استخدم `.gitignore` لحماية الملفات الحساسة
-- ✅ استخدم كلمات مرور قوية للوحة التحكم
+- ⚠️ Never share `.env` file
+- ⚠️ Never share `.session` files
+- ✅ Use `.gitignore` to protect sensitive files
+- ✅ Use strong passwords for dashboard
 
-## 📝 الترخيص
+## 📝 License
 
-هذا المشروع مرخص تحت [MIT License](LICENSE).
+This project is licensed under [MIT License](LICENSE).
 
-## 🤝 المساهمة
+## 🤝 Contributing
 
-المساهمات مرحب بها! يرجى:
+Contributions are welcome! Please:
 
-1. Fork المشروع
-2. أنشئ branch للميزة (`git checkout -b feature/amazing-feature`)
-3. Commit التغييرات (`git commit -m 'Add amazing feature'`)
-4. Push إلى الـ branch (`git push origin feature/amazing-feature`)
-5. افتح Pull Request
+1. Fork the project
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## 📞 الدعم
+## 📞 Support
 
 - 📧 Email: your@email.com
 - 💬 Telegram: @yourusername
@@ -262,4 +262,4 @@ engine.add_pattern('خصم', MatchType.CONTAINS)        # كلمة عادية
 
 ---
 
-⭐ إذا أعجبك المشروع، لا تنسَ إعطاءه نجمة!
+⭐ If you like the project, don't forget to give it a star!
