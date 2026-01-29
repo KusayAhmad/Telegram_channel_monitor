@@ -252,6 +252,34 @@ class ChannelMonitor:
 
 async def main():
     """Main function"""
+    import logging
+    
+    # Suppress Pyrogram's peer resolution errors
+    pyrogram_logger = logging.getLogger("pyrogram")
+    pyrogram_logger.setLevel(logging.WARNING)
+    
+    # Set exception handler for asyncio to catch unhandled exceptions
+    loop = asyncio.get_event_loop()
+    
+    def exception_handler(loop, context):
+        """Handle exceptions in asyncio tasks"""
+        exception = context.get('exception')
+        message = context.get('message', '')
+        
+        # Silently ignore peer resolution errors from Pyrogram
+        if exception and isinstance(exception, (ValueError, KeyError)):
+            error_msg = str(exception)
+            if "Peer id invalid" in error_msg or "ID not found" in error_msg:
+                return  # Ignore these errors
+        
+        # Log other exceptions
+        if exception:
+            monitor_logger.error(f"Unhandled exception in task: {exception}")
+        else:
+            monitor_logger.error(f"Unhandled error: {message}")
+    
+    loop.set_exception_handler(exception_handler)
+    
     monitor = ChannelMonitor()
     
     # Setup graceful shutdown
