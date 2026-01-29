@@ -18,6 +18,11 @@ class Database:
         self.db_path = db_path or config.DATABASE_PATH
         self._connection = None
     
+    async def _ensure_connection(self):
+        """Ensure database connection is active"""
+        if self._connection is None:
+            await self.connect()
+    
     async def connect(self):
         """Connect to database"""
         config.ensure_directories()
@@ -119,6 +124,7 @@ class Database:
     
     async def add_channel(self, channel_id: str, username: str = None, title: str = None) -> int:
         """Add new channel"""
+        await self._ensure_connection()
         try:
             cursor = await self._connection.execute(
                 '''INSERT OR REPLACE INTO channels (channel_id, username, title, updated_at) 
@@ -133,6 +139,7 @@ class Database:
     
     async def get_channels(self, active_only: bool = True) -> List[Dict]:
         """Fetch channels"""
+        await self._ensure_connection()
         query = 'SELECT * FROM channels'
         if active_only:
             query += ' WHERE is_active = 1'
@@ -143,6 +150,7 @@ class Database:
     
     async def toggle_channel(self, channel_id: str, is_active: bool) -> bool:
         """Enable/disable channel"""
+        await self._ensure_connection()
         await self._connection.execute(
             'UPDATE channels SET is_active = ?, updated_at = ? WHERE channel_id = ?',
             (1 if is_active else 0, datetime.now(), channel_id)
@@ -152,6 +160,7 @@ class Database:
     
     async def remove_channel(self, channel_id: str) -> bool:
         """Delete channel"""
+        await self._ensure_connection()
         await self._connection.execute('DELETE FROM channels WHERE channel_id = ?', (channel_id,))
         await self._connection.commit()
         return True
@@ -160,6 +169,7 @@ class Database:
     
     async def add_keyword(self, keyword: str, is_regex: bool = False) -> int:
         """Add keyword"""
+        await self._ensure_connection()
         try:
             cursor = await self._connection.execute(
                 'INSERT OR IGNORE INTO keywords (keyword, is_regex) VALUES (?, ?)',
@@ -173,6 +183,7 @@ class Database:
     
     async def get_keywords(self, active_only: bool = True) -> List[Dict]:
         """Fetch keywords"""
+        await self._ensure_connection()
         query = 'SELECT * FROM keywords'
         if active_only:
             query += ' WHERE is_active = 1'
@@ -183,6 +194,7 @@ class Database:
     
     async def toggle_keyword(self, keyword_id: int, is_active: bool) -> bool:
         """Enable/disable keyword"""
+        await self._ensure_connection()
         await self._connection.execute(
             'UPDATE keywords SET is_active = ? WHERE id = ?',
             (1 if is_active else 0, keyword_id)
@@ -192,6 +204,7 @@ class Database:
     
     async def remove_keyword(self, keyword_id: int) -> bool:
         """Delete keyword"""
+        await self._ensure_connection()
         await self._connection.execute('DELETE FROM keywords WHERE id = ?', (keyword_id,))
         await self._connection.commit()
         return True
@@ -208,6 +221,7 @@ class Database:
         message_link: str = None
     ) -> int:
         """Add detected message"""
+        await self._ensure_connection()
         try:
             cursor = await self._connection.execute(
                 '''INSERT OR IGNORE INTO detected_messages 
@@ -223,6 +237,7 @@ class Database:
     
     async def is_message_detected(self, message_id: int, channel_id: str, keyword: str) -> bool:
         """Check if message was previously detected"""
+        await self._ensure_connection()
         cursor = await self._connection.execute(
             '''SELECT 1 FROM detected_messages 
                WHERE message_id = ? AND channel_id = ? AND keyword_matched = ?''',
@@ -240,6 +255,7 @@ class Database:
         date_to: datetime = None
     ) -> List[Dict]:
         """Fetch detected messages with filtering"""
+        await self._ensure_connection()
         query = 'SELECT * FROM detected_messages WHERE 1=1'
         params = []
         
@@ -268,6 +284,7 @@ class Database:
     
     async def mark_notification_sent(self, message_id: int):
         """Update notification status"""
+        await self._ensure_connection()
         await self._connection.execute(
             'UPDATE detected_messages SET notification_sent = 1 WHERE id = ?',
             (message_id,)
@@ -285,6 +302,7 @@ class Database:
         error_message: str = None
     ) -> int:
         """Add notification record"""
+        await self._ensure_connection()
         cursor = await self._connection.execute(
             '''INSERT INTO notifications 
                (detected_message_id, notification_type, destination, status, error_message, sent_at)
@@ -299,6 +317,7 @@ class Database:
     
     async def get_stats(self, days: int = 7) -> Dict[str, Any]:
         """Fetch general statistics"""
+        await self._ensure_connection()
         # Total messages
         cursor = await self._connection.execute('SELECT COUNT(*) FROM detected_messages')
         total_messages = (await cursor.fetchone())[0]
@@ -355,6 +374,7 @@ class Database:
         days_of_week: str = "0,1,2,3,4,5,6"
     ) -> int:
         """Add schedule"""
+        await self._ensure_connection()
         cursor = await self._connection.execute(
             '''INSERT INTO schedules (name, start_time, end_time, days_of_week)
                VALUES (?, ?, ?, ?)''',
@@ -365,6 +385,7 @@ class Database:
     
     async def get_schedules(self, active_only: bool = True) -> List[Dict]:
         """Fetch schedules"""
+        await self._ensure_connection()
         query = 'SELECT * FROM schedules'
         if active_only:
             query += ' WHERE is_active = 1'
