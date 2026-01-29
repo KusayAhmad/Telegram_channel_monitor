@@ -6,13 +6,13 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# تحميل متغيرات البيئة
+# Load environment variables
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / '.env')
 
 
 class Config:
-    """إعدادات التطبيق"""
+    """Application configuration"""
     
     # Telegram API
     API_ID = int(os.getenv('API_ID', 0))
@@ -50,25 +50,25 @@ class Config:
     
     @classmethod
     def validate(cls):
-        """التحقق من صحة الإعدادات الأساسية"""
+        """Validate basic configuration settings"""
         errors = []
         
         if not cls.API_ID:
-            errors.append("API_ID غير محدد")
+            errors.append("API_ID is not set")
         if not cls.API_HASH:
-            errors.append("API_HASH غير محدد")
+            errors.append("API_HASH is not set")
         if not cls.NOTIFY_USER_ID:
-            errors.append("NOTIFY_USER_ID غير محدد")
+            errors.append("NOTIFY_USER_ID is not set")
             
         return errors
     
     @classmethod
     def ensure_directories(cls):
-        """إنشاء المجلدات المطلوبة"""
+        """Create required directories"""
         cls.DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
         cls.LOG_DIR.mkdir(parents=True, exist_ok=True)
         cls.EXPORT_DIR.mkdir(parents=True, exist_ok=True)
 
 
-# إنشاء instance للاستخدام المباشر
+# Create instance for direct use
 config = Config()

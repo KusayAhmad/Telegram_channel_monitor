@@ -18,28 +18,28 @@ from config import config
 
 def setup_logger(name: str = 'channel_monitor', level: int = logging.INFO) -> logging.Logger:
     """
-    إعداد وإرجاع logger مُهيأ
+    Setup and return a configured logger
     
     Args:
-        name: اسم الـ logger
-        level: مستوى التسجيل
+        name: Logger name
+        level: Logging level
     
     Returns:
-        logging.Logger: الـ logger المُهيأ
+        logging.Logger: Configured logger
     """
     logger = logging.getLogger(name)
     
-    # تجنب إضافة handlers متكررة
+    # Avoid adding duplicate handlers
     if logger.handlers:
         return logger
     
     logger.setLevel(level)
     
-    # تنسيق الرسائل
+    # Message format
     log_format = '%(asctime)s | %(levelname)-8s | %(name)s | %(message)s'
     date_format = '%Y-%m-%d %H:%M:%S'
     
-    # Handler للـ Console
+    # Console Handler
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(level)
     
@@ -62,7 +62,7 @@ def setup_logger(name: str = 'channel_monitor', level: int = logging.INFO) -> lo
     console_handler.setFormatter(console_formatter)
     logger.addHandler(console_handler)
     
-    # Handler للملف
+    # File Handler
     try:
         config.ensure_directories()
         file_handler = logging.FileHandler(
@@ -74,57 +74,57 @@ def setup_logger(name: str = 'channel_monitor', level: int = logging.INFO) -> lo
         file_handler.setFormatter(file_formatter)
         logger.addHandler(file_handler)
     except Exception as e:
-        logger.warning(f"لم يتم إنشاء ملف السجل: {e}")
+        logger.warning(f"Failed to create log file: {e}")
     
     return logger
 
 
-# Logger افتراضي للاستخدام المباشر
+# Default logger for direct use
 logger = setup_logger()
 
 
 class MonitorLogger:
-    """فئة مساعدة لتسجيل أحداث المراقبة"""
+    """Helper class for logging monitoring events"""
     
     def __init__(self, name: str = 'channel_monitor'):
         self.logger = setup_logger(name)
     
     def keyword_found(self, keyword: str, channel: str, message_id: int):
-        """تسجيل العثور على كلمة مفتاحية"""
+        """Log keyword found event"""
         self.logger.info(f"🎯 كلمة مفتاحية '{keyword}' في @{channel} (رسالة #{message_id})")
     
     def notification_sent(self, method: str, destination: str):
-        """تسجيل إرسال إشعار"""
+        """Log notification sent event"""
         self.logger.info(f"📤 إشعار {method} أُرسل إلى {destination}")
     
     def notification_failed(self, method: str, error: str):
-        """تسجيل فشل إرسال إشعار"""
+        """Log notification failure"""
         self.logger.error(f"❌ فشل إرسال {method}: {error}")
     
     def monitor_started(self, channels_count: int, keywords_count: int):
-        """تسجيل بدء المراقبة"""
+        """Log monitoring start"""
         self.logger.info(f"🚀 بدأت المراقبة: {channels_count} قناة، {keywords_count} كلمة")
     
     def monitor_stopped(self):
-        """تسجيل إيقاف المراقبة"""
+        """Log monitoring stop"""
         self.logger.info("🛑 توقفت المراقبة")
     
     def error(self, message: str, exc_info: bool = False):
-        """تسجيل خطأ"""
+        """Log error"""
         self.logger.error(message, exc_info=exc_info)
     
     def warning(self, message: str):
-        """تسجيل تحذير"""
+        """Log warning"""
         self.logger.warning(message)
     
     def info(self, message: str):
-        """تسجيل معلومة"""
+        """Log info"""
         self.logger.info(message)
     
     def debug(self, message: str):
-        """تسجيل للتصحيح"""
+        """Log debug"""
         self.logger.debug(message)
 
 
-# Instance افتراضي
+# Default instance
 monitor_logger = MonitorLogger()

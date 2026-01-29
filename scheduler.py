@@ -1,6 +1,6 @@
 """
-نظام الجدولة وإعادة التشغيل التلقائي
-يدير تشغيل المراقبة في أوقات محددة مع إعادة التشغيل عند الفشل
+Scheduling and auto-restart system
+Manages monitoring at specific times with restart on failure
 """
 import asyncio
 import signal
@@ -20,7 +20,7 @@ from database import db
 
 
 class ScheduleType(Enum):
-    """نوع الجدولة"""
+    """Schedule type"""
     DAILY = "daily"
     WEEKLY = "weekly"
     INTERVAL = "interval"
@@ -29,19 +29,19 @@ class ScheduleType(Enum):
 
 @dataclass
 class Schedule:
-    """بنية الجدول الزمني"""
+    """Schedule structure"""
     name: str
     schedule_type: ScheduleType
     start_time: Optional[time] = None
     end_time: Optional[time] = None
-    days_of_week: List[int] = None  # 0=الإثنين, 6=الأحد
+    days_of_week: List[int] = None  # 0=Monday, 6=Sunday
     interval_minutes: int = 0
     cron_expression: str = ""
     is_active: bool = True
 
 
 class ScheduleManager:
-    """مدير الجدولة"""
+    """Schedule manager"""
     
     def __init__(self):
         self.scheduler = AsyncIOScheduler()
@@ -50,15 +50,15 @@ class ScheduleManager:
         self._is_monitoring = False
     
     def set_monitor_callback(self, callback: Callable):
-        """تعيين دالة بدء/إيقاف المراقبة"""
+        """Set monitoring start/stop callback function"""
         self._monitor_callback = callback
     
     def add_schedule(self, schedule: Schedule):
-        """إضافة جدول زمني"""
+        """Add a schedule"""
         self.schedules.append(schedule)
         
         if schedule.schedule_type == ScheduleType.DAILY:
-            # جدولة يومية
+            # Daily scheduling
             self.scheduler.add_job(
                 self._start_monitoring,
                 CronTrigger(
@@ -99,31 +99,31 @@ class ScheduleManager:
         monitor_logger.info(f"تمت إضافة جدول: {schedule.name}")
     
     async def _start_monitoring(self):
-        """بدء المراقبة"""
+        """Start monitoring"""
         if self._monitor_callback and not self._is_monitoring:
             self._is_monitoring = True
             monitor_logger.info("🚀 بدء المراقبة المجدولة")
             await self._monitor_callback(start=True)
     
     async def _stop_monitoring(self):
-        """إيقاف المراقبة"""
+        """Stop monitoring"""
         if self._monitor_callback and self._is_monitoring:
             self._is_monitoring = False
             monitor_logger.info("🛑 إيقاف المراقبة المجدولة")
             await self._monitor_callback(start=False)
     
     def start(self):
-        """تشغيل المجدول"""
+        """Start the scheduler"""
         self.scheduler.start()
         monitor_logger.info("⏰ تم تشغيل نظام الجدولة")
     
     def stop(self):
-        """إيقاف المجدول"""
+        """Stop the scheduler"""
         self.scheduler.shutdown()
         monitor_logger.info("⏰ تم إيقاف نظام الجدولة")
     
     def is_within_schedule(self) -> bool:
-        """التحقق إذا كنا ضمن وقت المراقبة"""
+        """Check if we are within monitoring time"""
         now = datetime.now().time()
         today = datetime.now().weekday()
         
@@ -131,11 +131,11 @@ class ScheduleManager:
             if not schedule.is_active:
                 continue
             
-            # التحقق من اليوم
+            # Check day
             if schedule.days_of_week and today not in schedule.days_of_week:
                 continue
             
-            # التحقق من الوقت
+            # Check time
             if schedule.start_time and schedule.end_time:
                 if schedule.start_time <= now <= schedule.end_time:
                     return True
@@ -143,11 +143,11 @@ class ScheduleManager:
                 if now >= schedule.start_time:
                     return True
         
-        return len(self.schedules) == 0  # إذا لا توجد جداول، دائماً ضمن الوقت
+        return len(self.schedules) == 0  # If no schedules, always within time
 
 
 class AutoRestartManager:
-    """مدير إعادة التشغيل التلقائي"""
+    """Auto-restart manager"""
     
     def __init__(
         self, 
@@ -164,10 +164,10 @@ class AutoRestartManager:
     
     async def run_with_restart(self, coroutine_func: Callable):
         """
-        تشغيل دالة مع إعادة التشغيل التلقائي عند الفشل
+        Run function with automatic restart on failure
         
         Args:
-            coroutine_func: الدالة الـ async المراد تشغيلها
+            coroutine_func: Async function to run
         """
         self._running = True
         
@@ -199,25 +199,25 @@ class AutoRestartManager:
         self._running = False
     
     def stop(self):
-        """إيقاف إعادة التشغيل"""
+        """Stop restart"""
         self._running = False
         if self._main_task:
             self._main_task.cancel()
     
     def reset_retries(self):
-        """إعادة تعيين عداد المحاولات"""
+        """Reset retry counter"""
         self._current_retries = 0
 
 
 class GracefulShutdown:
-    """إدارة الإيقاف الآمن"""
+    """Graceful shutdown management"""
     
     def __init__(self):
         self._shutdown_event = asyncio.Event()
         self._cleanup_callbacks: List[Callable] = []
     
     def setup_signals(self):
-        """إعداد معالجات الإشارات"""
+        """Setup signal handlers"""
         if sys.platform != 'win32':
             loop = asyncio.get_event_loop()
             for sig in (signal.SIGTERM, signal.SIGINT):
@@ -228,25 +228,25 @@ class GracefulShutdown:
             signal.signal(signal.SIGTERM, self._sync_signal_handler)
     
     def _signal_handler(self):
-        """معالج الإشارات (Unix)"""
+        """Signal handler (Unix)"""
         monitor_logger.info("📴 تم استقبال إشارة الإيقاف")
         self._shutdown_event.set()
     
     def _sync_signal_handler(self, signum, frame):
-        """معالج الإشارات (Windows)"""
+        """Signal handler (Windows)"""
         monitor_logger.info("📴 تم استقبال إشارة الإيقاف")
         asyncio.get_event_loop().call_soon_threadsafe(self._shutdown_event.set)
     
     def add_cleanup(self, callback: Callable):
-        """إضافة دالة تنظيف"""
+        """Add cleanup function"""
         self._cleanup_callbacks.append(callback)
     
     async def wait_for_shutdown(self):
-        """انتظار إشارة الإيقاف"""
+        """Wait for shutdown signal"""
         await self._shutdown_event.wait()
     
     async def cleanup(self):
-        """تنفيذ عمليات التنظيف"""
+        """Execute cleanup operations"""
         monitor_logger.info("🧹 جاري التنظيف...")
         
         for callback in self._cleanup_callbacks:
