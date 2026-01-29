@@ -32,6 +32,16 @@ class ChannelMonitor:
     
     async def initialize(self):
         """Initialize the system"""
+        # Clean up stale session journal files
+        import os
+        session_journal = f"{config.SESSION_NAME}.session-journal"
+        if os.path.exists(session_journal):
+            try:
+                os.remove(session_journal)
+                self.logger.info("Removed stale session journal file")
+            except Exception as e:
+                self.logger.warning(f"Could not remove session journal: {e}")
+        
         # Validate configuration
         errors = Config.validate()
         if errors:
@@ -213,8 +223,18 @@ class ChannelMonitor:
         self.is_running = False
         self.logger.monitor_stopped()
         
-        await self.client.stop()
-        await db.disconnect()
+        # Close client with error handling
+        try:
+            if self.client and self.client.is_connected:
+                await self.client.stop()
+        except Exception as e:
+            self.logger.error(f"Error stopping client: {e}")
+        
+        # Close database connection
+        try:
+            await db.disconnect()
+        except Exception as e:
+            self.logger.error(f"Error closing database: {e}")
     
     async def run(self):
         """Full run"""

@@ -21,8 +21,14 @@ class Database:
     async def connect(self):
         """Connect to database"""
         config.ensure_directories()
-        self._connection = await aiosqlite.connect(self.db_path)
+        self._connection = await aiosqlite.connect(
+            self.db_path,
+            timeout=30.0,  # 30 seconds timeout to avoid locks
+            isolation_level=None  # Auto-commit mode
+        )
         self._connection.row_factory = aiosqlite.Row
+        # Enable WAL mode for better concurrent access
+        await self._connection.execute("PRAGMA journal_mode=WAL")
         await self._create_tables()
         monitor_logger.info(f"Connected to database: {self.db_path}")
     
